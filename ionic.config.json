@@ -1,0 +1,7 @@
+{
+  "name": "barberia",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
