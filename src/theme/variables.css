@@ -1,2 +1,39 @@
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
+
+:root {
+	/* Palette proporcionada: #38B2AC #4FD1C5  #2D3748 #E6FFFA */
+
+	/* Colores principales */
+	--ion-color-primary: #4FD1C5; /* color principal (acento) */
+	--ion-color-primary-contrast: #2D3748;
+	--ion-color-primary-shade: #3fbcb0;
+	--ion-color-primary-tint: #66e0d6;
+
+	--ion-color-secondary: #38B2AC; /* secundario */
+	--ion-color-secondary-contrast: #2D3748;
+	--ion-color-secondary-shade: #2f9b93;
+	--ion-color-secondary-tint: #4bd3c5;
+
+	--ion-color-tertiary: #E6FFFA; /* color claro para textos/fondos */
+	--ion-color-tertiary-contrast: #2D3748;
+
+	/* Fondos y texto global */
+	--ion-background-color: #2D3748;
+	--ion-text-color: #E6FFFA;
+
+	/* Badge / success / warning mapping */
+	--ion-color-success: #4FD1C5;
+	--ion-color-warning: #F6AD55; /* mantener un warning legible */
+	--ion-color-danger: #E53E3E;
+
+	/* Bordes / separadores */
+	--ion-border-color: #38B2AC;
+}
+
+/* Asegurar que la app use el fondo y texto deseados */
+ion-app, ion-page {
+	background: var(--ion-background-color);
+	color: var(--ion-text-color);
+}
+
