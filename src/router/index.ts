@@ -9,8 +9,19 @@ import Tabs from '@/views/Tabs.vue';
 
 const routes: Array<RouteRecordRaw> = [
   // Ruta Padre
+    // Ruta de Login
   {
-    path: '/',
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue')
+  },
+  {
+    path: '/Registro',
+    name: 'Registro',
+    component: () => import('@/views/Registro.vue')
+  },
+  {
+    path: '/Tabs',
     component: Tabs,
     //rutas hijas
     children: [
