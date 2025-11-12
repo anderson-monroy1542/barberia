@@ -15,8 +15,19 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/Cliente/Resenas.vue')
   },
   // Ruta Padre
+    // Ruta de Login
   {
-    path: '/',
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue')
+  },
+  {
+    path: '/Registro',
+    name: 'Registro',
+    component: () => import('@/views/Registro.vue')
+  },
+  {
+    path: '/Tabs',
     component: Tabs,
     //rutas hijas
     children: [

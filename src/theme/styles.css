@@ -1,0 +1,124 @@
+#cont-login {
+    /* Aplicar paleta: #2D3748 (oscuro) -> #38B2AC (principal) */
+    background: linear-gradient(135deg, #2D3748 0%, #38B2AC 60%, #4FD1C5 100%);
+    color: #E6FFFA;
+    /* texto claro */
+    min-height: 100vh;
+}
+
+
+/* En Ionic, ion-content usa Shadow DOM y toma la variable --background para el fondo.
+   Forzamos la variable en el host para que no queden zonas blancas. */
+
+ion-content#cont-login {
+    --background: linear-gradient(135deg, #2D3748 0%, #38B2AC 60%, #4FD1C5 100%) !important;
+}
+
+
+/* Asegurar que la raíz ocupe todo el alto y no aparezca fondo blanco por defecto */
+
+html,
+body,
+ion-app,
+ion-page,
+ion-content {
+    height: 100% !important;
+    min-height: 100% !important;
+    background: transparent !important;
+}
+
+.cont-login {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 56px);
+    padding: 20px 0;
+}
+
+.login-card {
+    width: 360px;
+    max-width: 92%;
+    /* fondo oscuro/transparente usando colores de la paleta */
+    background: linear-gradient(180deg, rgba(45, 55, 72, 0.88) 0%, rgba(6, 24, 15, 0.55) 100%);
+    border: 1px solid rgba(79, 209, 197, 0.12);
+    /* #4FD1C5 semitransparente */
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(13, 17, 20, 0.6);
+    padding: 12px 16px 20px 16px;
+    color: #E6FFFA;
+}
+
+.card-title {
+    color: #E6FFFA;
+    /* título claro */
+    text-align: center;
+    font-weight: 700;
+}
+
+
+/* Forzar que los items e inputs no tengan fondo blanco */
+
+ion-item {
+    --background: transparent;
+    background: transparent;
+    margin-top: 10px;
+    --border-radius: 6px;
+    border: none;
+}
+
+
+/* Entradas y select con texto claro y placeholder tenue */
+
+ion-input,
+ion-select {
+    color: #E6FFFA;
+    --placeholder-color: rgba(230, 255, 250, 0.7);
+    --padding-start: 8px;
+    background: transparent;
+}
+
+
+/* Asegurar porcentaje de ancho dentro de la tarjeta */
+
+ion-item .native-input,
+ion-input .native-input {
+    color: #E6FFFA;
+}
+
+.actions {
+    margin-top: 18px;
+}
+
+.btn-primary {
+    --background: #38B2AC;
+    /* principal */
+    --background-activated: #4FD1C5;
+    --color: #0b2a28;
+    /* texto oscuro sobre botón claro */
+    border-radius: 20px;
+}
+
+
+/* Encabezado/toolbar oscuro para evitar zonas blancas en la parte superior */
+
+ion-header,
+ion-toolbar {
+    --background: #2D3748;
+    color: #E6FFFA;
+}
+
+
+/* Evitar que el fondo de la página o partes queden blancas */
+
+ion-page,
+ion-app {
+    background: transparent !important;
+}
+
+
+/* En caso de que alguna regla global ponga body blanco */
+
+body {
+    background: transparent !important;
+}
