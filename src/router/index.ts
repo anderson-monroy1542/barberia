@@ -7,7 +7,13 @@ import { RouteRecordRaw } from 'vue-router';
 import Tabs from '@/views/Tabs.vue';
 
 
+
 const routes: Array<RouteRecordRaw> = [
+  {
+        path: '/resena',
+        name: 'resena',
+        component: () => import('@/views/Cliente/Resenas.vue')
+  },
   // Ruta Padre
   {
     path: '/',
@@ -37,11 +43,12 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'cuenta',
         component: () => import('@/views/Cuenta.vue')
-      }
+      },
+      
     ]
   }
   
-  // Aquí se ponen otras rutas que no lleven el menú
+
 ];
 
 const router = createRouter({
