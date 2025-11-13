@@ -2,20 +2,18 @@ import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
 
 
-
-// Importa Tabs
 import Tabs from '@/views/Tabs.vue';
 
-
-
 const routes: Array<RouteRecordRaw> = [
+  
+
+  //el login aparece primero
   {
-        path: '/resena',
-        name: 'resena',
-        component: () => import('@/views/Cliente/Resenas.vue')
+    path: '/',
+    redirect: '/login'
   },
-  // Ruta Padre
-    // Ruta de Login
+
+  //rutas publicas sin el login
   {
     path: '/login',
     name: 'Login',
@@ -26,14 +24,23 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Registro',
     component: () => import('@/views/Registro.vue')
   },
+  
+  // rutas que requieren login
+  
   {
+
+    path: '/resena/:id',
+    name: 'resena',
+    component: () => import('@/views/Cliente/Resenas.vue')
+  },
+  {
+    // ruta padre
     path: '/Tabs',
     component: Tabs,
-    //rutas hijas
     children: [
       {
         path: '',
-        redirect: 'inicio' // Si entran a "/", redirige a "/inicio"
+        redirect: 'inicio' //aparece inicio por defecto
       },
       {
         path: 'inicio',
@@ -66,5 +73,31 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 });
+
+//funciones que aseguran que se esté logeado para cambiar
+
+router.beforeEach((to, from, next) => {
+  //las unicas que no llevan registro
+  const publicPages = ['/login', '/Registro'];
+  //se revisa si es publica
+  const authRequired = !publicPages.includes(to.path);
+
+  //se verifica si ya se inicio sesion
+  const loggedIn = localStorage.getItem('user');
+
+  //si quiere entrar a rutas protegidas
+  if (authRequired && !loggedIn) {
+    //lo mandamos al login
+    return next('/login');
+  }
+
+  //no puede regresar al login si ya esta logueado
+  if (!authRequired && loggedIn) {
+
+    return next('/Tabs/inicio');
+  }
+  next();
+});
+
 
 export default router;

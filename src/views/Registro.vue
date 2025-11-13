@@ -13,50 +13,64 @@
                     <ion-card-header>
                         <ion-card-title class="card-title">Crear cuenta</ion-card-title>
                     </ion-card-header>
-                    <ibon-card-content>
+
+                    <ion-card-content>
                         <form @submit.prevent="onSubmit">
                             <ion-item>
                                 <ion-label position="stacked">Nombre</ion-label>
-                                <ion-input v-model="name" required></ion-input>
+                                <ion-input v-model="Nombre" required></ion-input>
+                            </ion-item>
+
+                            <ion-item>
+                                <ion-label position="stacked">Apellido</ion-label>
+                                <ion-input v-model="Apellido" required></ion-input>
                             </ion-item>
 
                             <ion-item>
                                 <ion-label position="stacked">Correo electrónico</ion-label>
-                                <ion-input v-model="email" type="email" required></ion-input>
+                                <ion-input v-model="Correo" type="email" required></ion-input>
                             </ion-item>
 
                             <ion-item>
                                 <ion-label position="stacked">Contraseña</ion-label>
-                                <ion-input v-model="password" type="password" required></ion-input>
+                                <ion-input v-model="Contrasena" type="password" required></ion-input>
                             </ion-item>
 
                             <ion-item>
                                 <ion-label position="stacked">Confirmar contraseña</ion-label>
-                                <ion-input v-model="confirmPassword" type="password" required></ion-input>
+                                <ion-input v-model="ConfirmarContrasena" type="password" required></ion-input>
                             </ion-item>
 
-                            <ion-item>
-                                <ion-label position="stacked">Tipo de usuario</ion-label>
-                                <ion-select v-model="role">
-                                    <ion-select-option value="cliente">Cliente</ion-select-option>
-                                    <ion-select-option value="barbero">Barbero</ion-select-option>
-                                </ion-select>
-                            </ion-item>
+
 
                             <div class="actions">
                                 <ion-button type="submit" expand="block" class="btn-primary">Registrarse</ion-button>
                             </div>
                         </form>
-                    </ibon-card-content>
+                    </ion-card-content>
                 </ion-card>
             </div>
+
+            <ion-toast
+                :is-open="isOpen"
+                message="Es necesario llenar todos los campos obligatorios"
+                :duration="5000"
+                @did-dismiss="setToast(false)"
+            ></ion-toast>
+            <ion-alert
+                :is-open="isOpenAlert"
+                header="Informacion"
+                message="Cuenta creada correctamente"
+                :buttons="alertButtons"
+            ></ion-alert>
 
         </ion-content>
     </ion-page>
     </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
+
+<script setup lang="ts">
+import { ref } from 'vue';
 import {
     IonPage,
     IonHeader,
@@ -72,59 +86,105 @@ import {
     IonInput,
     IonButton,
     IonSelect,
-    IonSelectOption
+    IonSelectOption,
+
+    IonToast,
+    IonAlert,
+    useIonRouter
 } from '@ionic/vue';
 
-export default defineComponent({
-    name: 'Registro',
-    components: {
-        IonPage,
-        IonHeader,
-        IonToolbar,
-        IonTitle,
-        IonContent,
-        IonCard,
-        IonCardHeader,
-        IonCardTitle,
-        IonCardContent,
-        IonItem,
-        IonLabel,
-        IonInput,
-        IonButton,
-        IonSelect,
-        IonSelectOption
-    },
-    setup() {
-        const name = ref('');
-        const email = ref('');
-        const password = ref('');
-        const confirmPassword = ref('');
-        const role = ref('cliente');
 
-        const onSubmit = () => {
-            if (password.value !== confirmPassword.value) {
-                // alerta simple; en producción usar un componente de feedback
-                alert('Las contraseñas no coinciden');
-                return;
-            }
-            // Aquí enviarías los datos a tu API o manejarías el login/registro
-            console.log('Formulario enviado', {
-                name: name.value,
-                email: email.value,
-                password: password.value,
-                role: role.value
-            });
+import UserService from '@/api/UserService';
+import User from '@/interface/User';
+
+
+const Nombre = ref('');
+const Apellido = ref('');
+const Correo = ref('');
+const Contrasena = ref(''); 
+const ConfirmarContrasena = ref('');
+const Id_rol = ref(2); //rol de cliente por defecto
+
+
+const userService = new UserService();
+const router = useIonRouter();
+
+var isOpen = ref(false);
+var isOpenAlert = ref(false);
+
+const alertButtons = [
+    {
+        text: "OK",
+        role: 'confirm',
+        handler: () => {
+            // Volvemos a la página anterior (ej. login)
+            router.back();
+        }
+    }
+];
+
+// Funciones para mostrar alertas
+const setToast = (value: boolean) => {
+    isOpen.value = value;
+}
+
+const setAlert = (value: boolean) => {
+    isOpenAlert.value = value;
+}
+
+
+const onSubmit = async () => {
+    //Validar contraseñas
+    if (Contrasena.value !== ConfirmarContrasena.value) {
+
+        alert('Las contraseñas no coinciden'); 
+        return;
+    }
+
+
+    if (Nombre.value.length > 0
+        && Apellido.value.length > 0
+        && Correo.value.length > 0
+        && Contrasena.value.length > 0
+    ) {
+
+        const userToSave: User = {
+            Nombre: Nombre.value,
+            Apellido: Apellido.value,
+            Correo: Correo.value,
+            Contrasena: Contrasena.value, 
+            Id_rol: Id_rol.value
+
         };
 
-        return { name, email, password, confirmPassword, role, onSubmit };
+        try {
+
+            const response = await userService.add(userToSave);
+
+            if (response && response.insertId) {
+                // Mostrar alerta de éxito
+                setAlert(true);
+            } else {
+                // Mostrar error si la API falla
+                alert('Error al guardar. Intente de nuevo.');
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert('Error de conexión con la API.');
+        }
+        
+    } else {
+
+        setToast(true);
     }
-});
+};
 </script>
 
 <style scoped>
 @import "../theme/styles.css";
 
-/* Agregar estos estilos específicos */
+
 ion-item {
   --background: transparent;
   margin-bottom: 16px;
