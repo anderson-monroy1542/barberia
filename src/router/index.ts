@@ -40,12 +40,22 @@ const routes: Array<RouteRecordRaw> = [
     children: [
       {
         path: '',
-        redirect: 'inicio' //aparece inicio por defecto
+        redirect: 'inicio' //aparece inicio por defecto para cliente
       },
+      //este es el inicio que vería el usuario admin
+      {
+        path: '/gestioncitas',
+        name: 'gestioncitas',
+        component: () => import('@/views/Admin/Citas.vue')
+      },
+      //-----------------------------------------
+      
+      //inicio del cliente
       {
         path: 'inicio',
         component: () => import('@/views/inicio.vue')
       },
+      //-----------------------------------------
       {
         path: 'agendar',
         component: () => import('@/views/Agendar.vue')

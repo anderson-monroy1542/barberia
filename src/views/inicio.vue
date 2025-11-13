@@ -28,7 +28,8 @@
                         <th>Nombre</th>
                         <th>Servicio</th>
                         <th>Fecha</th>
-                        
+                        <th>Hora</th>
+                        <th>Barbero</th>
                         <th>Estado</th>
                         <th>Reseña</th>
                         
@@ -39,6 +40,8 @@
                         <td>Juan Pérez</td>
                         <td>Corte Degradado</td>
                         <td>2025-11-10</td>
+                        <td>10:00</td>
+                        <td>Barbero Carlos</td>
                         <td>
                         <ion-badge color="success">
                             Completada
