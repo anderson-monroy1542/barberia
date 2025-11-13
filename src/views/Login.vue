@@ -34,7 +34,7 @@
 
               <div class="register-link">
                 <span>¿No tienes cuenta? </span>
-                <router-link to="/registro">Regístrate</router-link>
+                <router-link to="/Registro">Regístrate</router-link>
               </div>
             </form>
           </ion-card-content>
@@ -55,10 +55,7 @@
   </ion-page>
 </template>
 
-<!-- 
-  Este es tu <script setup> combinado con la lógica de tu ejemplo, 
-  PERO CORREGIDO para funcionar con nuestra API de bcrypt.
--->
+
 <script setup lang="ts">
 import { ref } from 'vue';
 import {
@@ -75,12 +72,9 @@ import {
   IonLabel,
   IonInput,
   IonButton,
-
   useIonRouter,
   IonToast,
-
 } from '@ionic/vue';
-
 
 import UserService from '@/api/UserService';
 import User from '@/interface/User'; 
@@ -88,10 +82,8 @@ import User from '@/interface/User';
 const Correo = ref('');
 const Contrasena = ref('');
 
-
 const router = useIonRouter();
 const userService = new UserService();
-
 const isOpen = ref(false);
 const msgToast = ref("");
 
@@ -101,32 +93,40 @@ const setOpen = (value: boolean) => {
 
 const login = async () => {
   try {
-    
     if (Correo.value.length > 0 && Contrasena.value.length > 0) {
+      
       const userAccount: User = await userService.login(Correo.value, Contrasena.value);
       
       if (userAccount && userAccount.Id_usuario) {
         
-        // Guardamos el usuario en localStorage para usarlo en la app
         localStorage.setItem('user', JSON.stringify(userAccount));
         
-        // Navegamos a la página principal (la de las Tabs)
-        router.push('/'); 
+        // aqui redirijo al incio segun el rol
+        switch (userAccount.Id_rol) {
+          case 1: // Admin
+            router.push('/Tabs/gestioncitas');
+            break;
+          case 2: // Barbero
+            router.push('/Tabs/barberocitas');
+            break;
+          case 3: // Cliente
+            router.push('/Tabs/inicio');
+            break;
+          default: 
+            router.push('/login');
+        }
 
       } else {
-        // La API no devolvió un usuario (esto no debería pasar si la API lanza error)
         msgToast.value = "Credenciales incorrectas";
         setOpen(true);
       }
 
     } else {
-      // 4. Los campos estaban vacíos
       msgToast.value = "Complete los campos";
       setOpen(true);
     }
 
   } catch (error) {
-    // 5. La API lanzó un error (ej. 401 Credenciales inválidas)
     console.error(error);
     msgToast.value = "Credenciales incorrectas";
     setOpen(true);
@@ -134,7 +134,7 @@ const login = async () => {
 }
 </script>
 
-<!-- Tu CSS (sin cambios) -->
+
 <style scoped>
   @import "../theme/styles.css";
 

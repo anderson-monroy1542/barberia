@@ -3,6 +3,15 @@
         <ion-header>
         <ion-toolbar>
             <ion-title>Inicio</ion-title>
+            
+            
+            <ion-buttons slot="end">
+                <ion-button @click="logout()">
+                    <ion-icon :icon="logOutOutline" slot="start"></ion-icon>
+                    Cerrar Sesión
+                </ion-button>
+            </ion-buttons>
+
         </ion-toolbar>
         </ion-header>
         <ion-content :fullscreen="true">
@@ -36,6 +45,7 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <!-- Fila Manual 1 -->
                     <tr>
                         <td>Juan Pérez</td>
                         <td>Corte Degradado</td>
@@ -60,10 +70,13 @@
                         
                     </tr>
                     
+                    <!-- Fila Manual 2 -->
                     <tr>
                         <td>Ana Gómez</td>
                         <td>Barba Completa</td>
                         <td>2025-11-11</td>
+                        <td>11:30</td>
+                        <td>Barbero Luis</td>
                         <td>
                         <ion-badge color="warning">
                             Cancelada
@@ -79,15 +92,15 @@
                             Reseña
                         </ion-button>
                         </td>
-                        <td>
-                        
-                        </td>
                     </tr>
 
+                    <!-- Fila Manual 3 -->
                     <tr>
                         <td>Luis Castro</td>
                         <td>Corte Clásico</td>
                         <td>2025-11-12</td>
+                        <td>14:00</td>
+                        <td>Barbero Carlos</td>
                         <td>
                         <ion-badge color="medium">
                             Pendiente
@@ -114,6 +127,9 @@
     </ion-page>
 </template>
 
+    <!-- 
+    SCRIPT MODIFICADO
+    -->
 <script setup lang="ts">
     import {
     IonPage,
@@ -123,9 +139,11 @@
     IonContent,
     IonButton,
     IonIcon,
-    IonSearchbar,
+    /* IonSearchbar */
+    IonInput, 
     IonBadge,
-    IonButtons
+    IonButtons,
+    useIonRouter
     } from '@ionic/vue';
     import {
     checkmarkCircleOutline,
@@ -134,27 +152,32 @@
     searchOutline,
     starOutline,
     createOutline,
-    trashOutline
+    trashOutline,
+    logOutOutline
     } from 'ionicons/icons';
 
+    //logout
+    const router = useIonRouter();
+
+    const logout = () => {
+        localStorage.removeItem('user');
+        router.navigate('/login', 'back', 'replace');
+    };
+    // -----------------------
+
     const nuevaCita = () => {
-    console.log('Navegar a nueva cita');
+        console.log('Navegar a nueva cita');
     };
 
     const generarReporte = () => {
-    console.log('Generar reporte');
+        console.log('Generar reporte');
     };
 
 </script>
 
-<style scoped>
-    /* Estilos con colores "quemados" (hardcoded).
-    Ignoramos 'variables.css'.
-    */
 
-    /* Establecemos los fondos y colores principales 
-    directamente en los componentes.
-    */
+<style scoped>
+    
     ion-header {
     --background: #2A2A2A; /* Fondo de header */
     --color: #E6FFFA; /* Texto de header */
@@ -168,18 +191,23 @@
     ion-title {
     font-weight: bold;
     }
+    
+    /* Estilo para el botón de logout */
+    ion-buttons[slot="end"] ion-button {
+      --color: #E6FFFA; 
+    }
 
     .icono-encabezado {
     font-size: 24px;
     margin-right: 10px;
-    color: #38B2AC; /* Tu verde primario */
+    color: #38B2AC; 
     }
 
     .contenedor-principal {
     padding: 16px;
     }
 
-    /* Estilos para los controles superiores */
+
     .controles-superiores {
     display: flex;
     flex-direction: column;
@@ -196,7 +224,7 @@
     .contenedor-busqueda {
     display: flex;
     align-items: center;
-    background: #2A2A2A; /* Fondo de componente */
+    background: #2A2A2A; 
     border-radius: 8px;
     padding: 0 5px;
     position: relative;
@@ -204,8 +232,8 @@
 
     .barra-busqueda-personalizada {
     --background: transparent;
-    --color: #E6FFFA; /* Texto verde claro */
-    --placeholder-color: #A0AEC0; /* Gris para placeholder */
+    --color: #E6FFFA; 
+    --placeholder-color: #A0AEC0; 
     --border-radius: 8px;
     padding: 0;
     }
@@ -217,7 +245,7 @@
     }
 
     .boton-accion-busqueda {
-    --background: #38B2AC; /* Verde primario */
+    --background: #38B2AC; 
     --border-radius: 8px;
     height: 40px;
     width: 40px;
@@ -228,7 +256,7 @@
     .table-container {
     width: 100%;
     overflow-x: auto;
-    background: #2A2A2A; /* Fondo de componente */
+    background: #2A2A2A; 
     border-radius: 8px;
     padding: 10px;
     align-items: center;
@@ -239,17 +267,17 @@
     table {
     width: 100%;
     border-collapse: collapse;
-    color: #E6FFFA; /* Texto verde claro */
+    color: #E6FFFA; 
     min-width: 600px;
     }
 
     thead th {
-    background-color: #2A2A2A; /* Fondo de componente */
+    background-color: #2A2A2A; 
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 2px solid #38B2AC; /* Borde verde primario */
+    border-bottom: 2px solid #38B2AC; 
     font-weight: bold;
-    color: #4FD1C5; /* Verde secundario */
+    color: #4FD1C5;
     position: sticky;
     top: 0;
     z-index: 1;
@@ -264,7 +292,7 @@
     border-bottom: none;
     }
 
-    /* Estilo para los badges de estado */
+
     ion-badge {
     padding: 5px 10px;
     border-radius: 12px;
@@ -272,7 +300,6 @@
     text-transform: capitalize;
     }
 
-    /* Colores hardcoded para los badges */
     ion-badge[color="success"] {
     --background: #38B2AC;
     --color: #000000;

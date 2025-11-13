@@ -4,12 +4,14 @@
       <ion-toolbar>
         <ion-title>Citas</ion-title>
         <ion-buttons slot="end">
-                <ion-button @click="logout()">
-                    <ion-icon :icon="logOutOutline" slot="start"></ion-icon>
-                    Cerrar Sesión
-                </ion-button>
-            </ion-buttons>
+            <ion-button @click="logout()">
+                <ion-icon :icon="logOutOutline" slot="start"></ion-icon>
+                Cerrar Sesión
+            </ion-button>
+        </ion-buttons>
       </ion-toolbar>
+
+      
     </ion-header>
 
     <ion-content class="ion-padding">
@@ -82,7 +84,8 @@
 </template>
 
 <script setup lang="ts">
-
+// 1. IMPORTACIONES (COMPONENTES, VUE, ICONOS)
+// Todos los imports se agrupan aquí
 import { ref, computed, onMounted } from 'vue';
 import {
   IonPage,
@@ -185,11 +188,6 @@ function saveEdit() {
   closeModal();
 }
 
-const logout = () => {
-    localStorage.removeItem('user');
-    router.navigate('/login', 'back', 'replace');
-};
-
 function clearFilters() {
   filterFrom.value = null;
   filterTo.value = null;
@@ -200,11 +198,15 @@ function formatDateTime(iso: string) {
   return d.toLocaleString();
 }
 
+const logout = () => {
+    localStorage.removeItem('user');
+    router.navigate('/login', 'back', 'replace');
+};
+
 
 onMounted(() => {
   load();
 });
-
 
 </script>
 

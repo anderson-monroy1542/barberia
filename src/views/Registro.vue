@@ -41,10 +41,15 @@
                                 <ion-input v-model="ConfirmarContrasena" type="password" required></ion-input>
                             </ion-item>
 
-
-
                             <div class="actions">
-                                <ion-button type="submit" expand="block" class="btn-primary">Registrarse</ion-button>
+                                <ion-button 
+                                    type="submit" 
+                                    expand="block" 
+                                    class="btn-primary"
+                                    :disabled="isSubmitting"
+                                >
+                                    {{ isSubmitting ? 'Registrando...' : 'Registrarse' }}
+                                </ion-button>
                             </div>
                         </form>
                     </ion-card-content>
@@ -103,8 +108,9 @@ const Apellido = ref('');
 const Correo = ref('');
 const Contrasena = ref(''); 
 const ConfirmarContrasena = ref('');
-const Id_rol = ref(2); //rol de cliente por defecto
+const Id_rol = ref(3); 
 
+const isSubmitting = ref(false); // Para deshabilitar el botón
 
 const userService = new UserService();
 const router = useIonRouter();
@@ -117,7 +123,7 @@ const alertButtons = [
         text: "OK",
         role: 'confirm',
         handler: () => {
-            // Volvemos a la página anterior (ej. login)
+
             router.back();
         }
     }
@@ -134,19 +140,24 @@ const setAlert = (value: boolean) => {
 
 
 const onSubmit = async () => {
+    //Si ya se está enviando, no hacer nada
+    if (isSubmitting.value) return;
+
     //Validar contraseñas
     if (Contrasena.value !== ConfirmarContrasena.value) {
-
         alert('Las contraseñas no coinciden'); 
         return;
     }
 
-
+    // 2. Validar campos
     if (Nombre.value.length > 0
         && Apellido.value.length > 0
         && Correo.value.length > 0
         && Contrasena.value.length > 0
     ) {
+
+        //deshabilita el boton
+        isSubmitting.value = true;
 
         const userToSave: User = {
             Nombre: Nombre.value,
@@ -154,11 +165,10 @@ const onSubmit = async () => {
             Correo: Correo.value,
             Contrasena: Contrasena.value, 
             Id_rol: Id_rol.value
-
         };
 
-        try {
 
+        try {
             const response = await userService.add(userToSave);
 
             if (response && response.insertId) {
@@ -169,21 +179,30 @@ const onSubmit = async () => {
                 alert('Error al guardar. Intente de nuevo.');
             }
 
-        } catch (error) {
+        } catch (error: any) { 
             console.error(error);
-            alert('Error de conexión con la API.');
+            
+            // Muestra si es correo duplicado
+            if (error.response && error.response.data) {
+                alert(`Error: ${error.response.data}`);
+            } else {
+                alert('Error de conexión con la API.');
+            }
+        } finally {
+            //habilita el botón nuevamente
+            isSubmitting.value = false;
         }
         
     } else {
-
+        // Mostrar error de campos vacíos
         setToast(true);
     }
 };
 </script>
 
+
 <style scoped>
 @import "../theme/styles.css";
-
 
 ion-item {
   --background: transparent;
