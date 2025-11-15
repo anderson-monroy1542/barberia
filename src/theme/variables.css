@@ -1,2 +1,112 @@
+<<<<<<< HEAD
+/* Forzamos el tema oscuro para toda la aplicación.
+    Esto le dice a Ionic que use variables de color oscuro
+    en todos los componentes (ion-content, ion-header, etc.)
+*/
+body {
+    /*
+        NUEVOS COLORES OSCUROS:
+        Estos son los fondos que querías.
+    */
+    --ion-background-color: #1E1E1E; /* Fondo principal muy oscuro */
+    --ion-background-color-rgb: 30, 30, 30;
+
+    /* Fondo para componentes "elevados" como headers, tarjetas, etc. */
+    --ion-toolbar-background: #2A2A2A;
+    --ion-card-background: #2A2A2A;
+    --ion-item-background: #2A2A2A;
+
+    /*
+        COLORES DE TEXTO:
+        Usamos tu paleta para el texto.
+    */
+    --ion-text-color: #E6FFFA; /* Tu verde claro como texto principal */
+    --ion-text-color-rgb: 230, 255, 250;
+    
+    /* Colores para links o texto de acento */
+    --ion-color-step-500: #A0AEC0; /* Gris medio para placeholders */
+    --ion-color-step-800: #E6FFFA;
+    }
+
+    /* Definimos tu paleta de colores para que Ionic la entienda.
+    Ahora puedes usar color="primary" y funcionará en todas partes.
+    */
+    :root {
+    /* #38B2AC -> primary */
+    --ion-color-primary: #38B2AC;
+    --ion-color-primary-rgb: 56, 178, 172;
+    --ion-color-primary-contrast: #000000;
+    --ion-color-primary-contrast-rgb: 0, 0, 0;
+    --ion-color-primary-shade: #319d97;
+    --ion-color-primary-tint: #4cc7c1;
+
+    /* #4FD1C5 -> secondary */
+    --ion-color-secondary: #4FD1C5;
+    --ion-color-secondary-rgb: 79, 209, 197;
+    --ion-color-secondary-contrast: #000000;
+    --ion-color-secondary-contrast-rgb: 0, 0, 0;
+    --ion-color-secondary-shade: #46b8af;
+    --ion-color-secondary-tint: #62d6cf;
+
+    /* #E6FFFA -> tertiary (lo usaremos para botones claros) */
+    --ion-color-tertiary: #E6FFFA;
+    --ion-color-tertiary-rgb: 230, 255, 250;
+    --ion-color-tertiary-contrast: #000000;
+    --ion-color-tertiary-contrast-rgb: 0, 0, 0;
+    --ion-color-tertiary-shade: #ccE0dd;
+    --ion-color-tertiary-tint: #eafffc;
+
+    /* #2D3748 -> dark (lo guardamos por si acaso) */
+    --ion-color-dark: #2D3748;
+    --ion-color-dark-rgb: 45, 55, 72;
+    --ion-color-dark-contrast: #ffffff;
+    --ion-color-dark-contrast-rgb: 255, 255, 255;
+    --ion-color-dark-shade: #283040;
+    --ion-color-dark-tint: #424a5b;
+
+    /* Colores semánticos que necesita la app */
+    --ion-color-success: var(--ion-color-primary);
+    --ion-color-warning: #FFBF00; /* Amarillo */
+    --ion-color-medium: #A0AEC0; /* Gris */
+}
+=======
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
+
+:root {
+	/* Palette proporcionada: #38B2AC #4FD1C5  #2D3748 #E6FFFA */
+
+	/* Colores principales */
+	--ion-color-primary: #4FD1C5; /* color principal (acento) */
+	--ion-color-primary-contrast: #2D3748;
+	--ion-color-primary-shade: #3fbcb0;
+	--ion-color-primary-tint: #66e0d6;
+
+	--ion-color-secondary: #38B2AC; /* secundario */
+	--ion-color-secondary-contrast: #2D3748;
+	--ion-color-secondary-shade: #2f9b93;
+	--ion-color-secondary-tint: #4bd3c5;
+
+	--ion-color-tertiary: #E6FFFA; /* color claro para textos/fondos */
+	--ion-color-tertiary-contrast: #2D3748;
+
+	/* Fondos y texto global */
+	--ion-background-color: #2D3748;
+	--ion-text-color: #E6FFFA;
+
+	/* Badge / success / warning mapping */
+	--ion-color-success: #4FD1C5;
+	--ion-color-warning: #F6AD55; /* mantener un warning legible */
+	--ion-color-danger: #E53E3E;
+
+	/* Bordes / separadores */
+	--ion-border-color: #38B2AC;
+}
+
+/* Asegurar que la app use el fondo y texto deseados */
+ion-app, ion-page {
+	background: var(--ion-background-color);
+	color: var(--ion-text-color);
+}
+
+>>>>>>> origin/IvanCitas
