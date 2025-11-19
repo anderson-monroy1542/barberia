@@ -36,7 +36,11 @@ const routes: Array<RouteRecordRaw> = [
         path: 'gestioncitas', // "Inicio" del Admin
         component: () => import('@/views/Admin/Citas.vue'),
         meta: { roles: [1] } // Solo Admin
-      },
+      },{
+      path: 'gestionresenas', // ⬅️ NUEVA RUTA
+      component: () => import('@/views/Admin/ResenasAdmin.vue'),
+      meta: { roles: [1] }
+    },
       // --- Ruta Barbero (Rol 2) ---
       {
         path: 'barberocitas', // "Inicio" del Barbero

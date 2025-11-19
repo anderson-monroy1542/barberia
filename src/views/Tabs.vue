@@ -11,6 +11,12 @@
             <ion-icon :icon="homeOutline" />
             <ion-label>Inicio</ion-label>
             </ion-tab-button>
+
+            <!-- Nueva pestaña de Reseñas para el admin -->
+            <ion-tab-button v-if="userRole === 1" tab="resenas" href="/Tabs/gestionresenas">
+            <ion-icon :icon="starOutline" />
+            <ion-label>Reseñas</ion-label>
+            </ion-tab-button>
             <!-- aqui se pueden añadir mas cosas para el admin -->
 
 
@@ -77,7 +83,8 @@
     calendarOutline, 
     gridOutline, 
     timeOutline, 
-    personCircleOutline 
+    personCircleOutline,
+    starOutline  // ⬅️ NUEVO: Importamos el ícono de estrella
     } from 'ionicons/icons';
 
     // Creamos una variable reactiva para guardar el rol
