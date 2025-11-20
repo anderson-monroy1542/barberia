@@ -58,6 +58,7 @@
                                     </ion-badge>
                                 </td>
                                 <td>
+                                    <!-- Botón de reseña para citas completadas -->
                                     <ion-button 
                                         v-if="cita.tieneResena"
                                         size="small" 
@@ -78,6 +79,19 @@
                                         <ion-icon :icon="starOutline" slot="start"></ion-icon>
                                         Dejar Reseña
                                     </ion-button>
+                                    
+                                    <!-- Botón de cancelar para citas pendientes -->
+                                    <ion-button 
+                                        v-else-if="cita.EstadoC === 'Pendiente'"
+                                        size="small" 
+                                        color="danger" 
+                                        class="boton-cancelar"
+                                        @click="confirmarCancelacion(cita)"
+                                    >
+                                        <ion-icon :icon="closeCircleOutline" slot="start"></ion-icon>
+                                        Cancelar Cita
+                                    </ion-button>
+                                    
                                     <ion-button 
                                         v-else
                                         size="small" 
@@ -175,6 +189,53 @@
                     </div>
                 </ion-content>
             </ion-modal>
+
+            <!-- Modal de Confirmación de Cancelación -->
+            <ion-modal :is-open="mostrarModalCancelar">
+                <ion-header>
+                    <ion-toolbar>
+                        <ion-title>Confirmar Cancelación</ion-title>
+                        <ion-buttons slot="end">
+                            <ion-button @click="cerrarModalCancelar">Cerrar</ion-button>
+                        </ion-buttons>
+                    </ion-toolbar>
+                </ion-header>
+
+                <ion-content class="ion-padding">
+                    <div v-if="citaACancelar" class="modal-content">
+                        <div class="alerta-cancelacion">
+                            <ion-icon :icon="warningOutline" class="icono-alerta"></ion-icon>
+                            <h2>¿Estás seguro?</h2>
+                            <p>Esta acción no se puede deshacer</p>
+                        </div>
+
+                        <div class="info-cita">
+                            <h3>{{ citaACancelar.Servicio }}</h3>
+                            <p><strong>Fecha:</strong> {{ formatearFecha(citaACancelar.Fecha) }}</p>
+                            <p><strong>Hora:</strong> {{ citaACancelar.Hora }}</p>
+                            <p><strong>Barbero:</strong> {{ citaACancelar.BarberoNombre }}</p>
+                        </div>
+
+                        <ion-button 
+                            expand="block" 
+                            color="danger" 
+                            @click="cancelarCita"
+                            :disabled="cancelando"
+                        >
+                            <ion-icon :icon="closeCircleOutline" slot="start"></ion-icon>
+                            {{ cancelando ? 'Cancelando...' : 'Sí, Cancelar Cita' }}
+                        </ion-button>
+
+                        <ion-button 
+                            expand="block" 
+                            fill="outline" 
+                            @click="cerrarModalCancelar"
+                        >
+                            Volver
+                        </ion-button>
+                    </div>
+                </ion-content>
+            </ion-modal>
         </ion-content>
     </ion-page>
 </template>
@@ -208,7 +269,9 @@ import {
     logOutOutline,
     calendarOutline,
     sendOutline,
-    closeOutline
+    closeOutline,
+    closeCircleOutline,
+    warningOutline
 } from 'ionicons/icons';
 import axios from 'axios';
 
@@ -221,10 +284,13 @@ const citas = ref<any[]>([]);
 const loading = ref(false);
 const fechaBusqueda = ref('');
 const mostrarModal = ref(false);
+const mostrarModalCancelar = ref(false);
 const citaSeleccionada = ref<any>(null);
+const citaACancelar = ref<any>(null);
 const calificacion = ref(0);
 const comentario = ref('');
 const enviando = ref(false);
+const cancelando = ref(false);
 
 // Computed
 const citasFiltradas = computed(() => {
@@ -294,6 +360,48 @@ function cerrarModal() {
     citaSeleccionada.value = null;
     calificacion.value = 0;
     comentario.value = '';
+}
+
+function confirmarCancelacion(cita: any) {
+    citaACancelar.value = cita;
+    mostrarModalCancelar.value = true;
+}
+
+function cerrarModalCancelar() {
+    mostrarModalCancelar.value = false;
+    citaACancelar.value = null;
+}
+
+async function cancelarCita() {
+    if (!citaACancelar.value) return;
+
+    cancelando.value = true;
+    try {
+        // Actualizar el estado de la cita a "Cancelada" (Id_estadoC = 3)
+        const citaActualizada = {
+            Id_cita: citaACancelar.value.Id_cita,
+            Fecha: citaACancelar.value.Fecha,
+            Dia: citaACancelar.value.Dia,
+            Hora: citaACancelar.value.Hora,
+            Id_Barbero: citaACancelar.value.Id_Barbero,
+            Id_servicio: citaACancelar.value.Id_servicio,
+            Id_estadoC: 3, // 3 = Cancelada
+            Id_usuario: citaACancelar.value.Id_cliente // ← CORRECCIÓN AQUÍ
+        };
+
+        console.log('Enviando datos:', citaActualizada); // Debug
+
+        await axios.put(`${API_URL}/citas/update`, citaActualizada);
+        
+        mostrarToast('Cita cancelada correctamente', 'success');
+        cerrarModalCancelar();
+        cargarCitas(); // Recargar las citas
+    } catch (error: any) {
+        console.error('Error completo:', error.response || error);
+        mostrarToast('Error al cancelar la cita', 'danger');
+    } finally {
+        cancelando.value = false;
+    }
 }
 
 function seleccionarCalificacion(n: number) {
@@ -461,6 +569,12 @@ tbody tr:last-child td {
     font-weight: bold;
 }
 
+.boton-cancelar {
+    --border-radius: 8px;
+    font-weight: bold;
+    --background: #E53E3E;
+}
+
 .estado-vacio {
     text-align: center;
     padding: 60px 20px;
@@ -539,6 +653,30 @@ tbody tr:last-child td {
     font-size: 12px;
     color: #A0AEC0;
     margin-top: 4px;
+}
+
+.alerta-cancelacion {
+    text-align: center;
+    padding: 24px;
+    background: rgba(229, 62, 62, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.icono-alerta {
+    font-size: 64px;
+    color: #E53E3E;
+    margin-bottom: 12px;
+}
+
+.alerta-cancelacion h2 {
+    margin: 12px 0 8px 0;
+    color: #E53E3E;
+}
+
+.alerta-cancelacion p {
+    color: #A0AEC0;
+    margin: 0;
 }
 
 @media (max-width: 768px) {
