@@ -10,6 +10,14 @@
       <h2 class="ion-text-center">Horarios disponibles</h2>
 
       <!--boton solo para admin-->
+      <ion-item v-if="servicioSeleccionadoDesdeRuta" lines="none" class="info-card ion-margin-bottom">
+        <ion-label>
+          <p class="ion-no-margin">Servicio a Agendar:</p>
+          <h3 class="ion-no-margin">
+            <strong>{{ servicioSeleccionadoDesdeRuta }}</strong>
+          </h3>
+        </ion-label>
+      </ion-item>
       <ion-button
         v-if="userRole === 'admin'"
         expand="block"
@@ -55,6 +63,10 @@
           </ion-toolbar>
         </ion-header>
         <ion-content class="ion-padding">
+          <ion-item>
+            <ion-label position="stacked">Servicio</ion-label>
+            <ion-input v-model="servicioParaAgendar" readonly></ion-input>
+          </ion-item>
           <ion-item>
             <ion-label position="stacked">Día</ion-label>
             <ion-input v-model="horarioSeleccionado.dia" readonly></ion-input>
@@ -120,7 +132,6 @@
             <ion-label position="stacked">Barbero</ion-label>
             <ion-input v-model="nuevoHorario.barbero" placeholder="Nombre del barbero"></ion-input>
           </ion-item>
-
           <ion-button expand="block" color="success" @click="agregarHorario">
             Agregar horario
           </ion-button>
@@ -129,13 +140,13 @@
           </ion-button>
         </ion-content>
       </ion-modal>
-
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent,  ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import {
   IonPage,
   IonHeader,
@@ -170,6 +181,16 @@ export default defineComponent({
     IonInput
   },
   setup() {
+    const route = useRoute(); // Inicializar useRoute
+    const servicioSeleccionadoDesdeRuta = ref('');
+    const servicioParaAgendar = ref(''); 
+    onMounted(() => {
+        const servicio = route.query.nombreServicio;
+        if (servicio) {
+            servicioSeleccionadoDesdeRuta.value = String(servicio);
+            servicioParaAgendar.value = String(servicio);
+        }
+    });
     const userRole = ref('admin');
     const horarios = ref([
       { dia: 'Lunes', fecha: '2025-11-05', hora: '09:00', barbero: 'Carlos' },
@@ -184,6 +205,7 @@ export default defineComponent({
 
     const abrirAgendar = (horario: any) => {
       horarioSeleccionado.value = { ...horario };
+      servicioParaAgendar.value = servicioSeleccionadoDesdeRuta.value; 
       modalAgendar.value = true;
     };
 
@@ -195,6 +217,7 @@ export default defineComponent({
     const confirmarAgendar = () => {
       console.log('Cita agendada:', {
         ...horarioSeleccionado.value,
+        servicio: servicioParaAgendar.value,
         cliente: nombreCliente.value
       });
       
@@ -284,6 +307,9 @@ export default defineComponent({
     //retorno de lo que usa el template
     return {
       userRole,
+
+      servicioSeleccionadoDesdeRuta,
+      servicioParaAgendar,
       
       //datos lista
       horarios,
@@ -310,6 +336,15 @@ export default defineComponent({
 </script>
 
 <style>
+.info-card {
+    --background: #1e1e1e; /* Fondo oscuro */
+    --color: #ffd700; /* Color dorado/amarillo para resaltar */
+    border-left: 5px solid #ffd700;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
 .native-input {
   width: 100%;
   padding-top: 10px;

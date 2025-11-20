@@ -61,7 +61,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: { roles: [1, 2, 3] } // Todos pueden ver
       },
       {
-        path: 'horarios',
+        path: '/horarios',
         component: () => import('@/views/Horarios.vue'),
         meta: { roles: [1, 2, 3] } // Todos pueden ver
       },
