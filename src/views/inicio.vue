@@ -1,137 +1,187 @@
 <template>
     <ion-page>
         <ion-header>
-        <ion-toolbar>
-            <ion-title>Inicio</ion-title>
-            
-            
-            <ion-buttons slot="end">
-                <ion-button @click="logout()">
-                    <ion-icon :icon="logOutOutline" slot="start"></ion-icon>
-                    Cerrar Sesión
-                </ion-button>
-            </ion-buttons>
-
-        </ion-toolbar>
+            <ion-toolbar>
+                <ion-title>Mis Citas</ion-title>
+                <ion-buttons slot="end">
+                    <ion-button @click="logout()">
+                        <ion-icon :icon="logOutOutline" slot="start"></ion-icon>
+                        Cerrar Sesión
+                    </ion-button>
+                </ion-buttons>
+            </ion-toolbar>
         </ion-header>
+
         <ion-content :fullscreen="true">
             <div class="contenedor-principal">
-                
+                <!-- Filtro por fecha -->
                 <div class="controles-superiores">
-                
-
-                <div class="contenedor-busqueda">
-                    <ion-input type="date" placeholder="Buscar por fecha" class="barra-busqueda-personalizada"></ion-input>
-                    
-                    <ion-icon :icon="searchOutline" class="icono-busqueda"></ion-icon>
-                    <ion-button color="success" class="boton-accion-busqueda">
-                        <ion-icon :icon="checkmarkCircleOutline"></ion-icon>
-                    </ion-button>
-                </div>
-                </div>
-
-                <div class="table-container">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Servicio</th>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                        <th>Barbero</th>
-                        <th>Estado</th>
-                        <th>Reseña</th>
-                        
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!-- Fila Manual 1 -->
-                    <tr>
-                        <td>Juan Pérez</td>
-                        <td>Corte Degradado</td>
-                        <td>2025-11-10</td>
-                        <td>10:00</td>
-                        <td>Barbero Carlos</td>
-                        <td>
-                        <ion-badge color="success">
-                            Completada
-                        </ion-badge>
-                        </td>
-                        <td>
-                        <ion-button 
-                            size="small" 
-                            color="warning" 
-                            class="boton-resena"
-                        >
-                            <ion-icon :icon="starOutline" slot="start"></ion-icon>
-                            Reseña
+                    <div class="contenedor-busqueda">
+                        <ion-input 
+                            v-model="fechaBusqueda" 
+                            type="date" 
+                            placeholder="Buscar por fecha"
+                            class="barra-busqueda-personalizada"
+                        ></ion-input>
+                        <ion-icon :icon="searchOutline" class="icono-busqueda"></ion-icon>
+                        <ion-button color="success" class="boton-accion-busqueda" @click="filtrarPorFecha">
+                            <ion-icon :icon="checkmarkCircleOutline"></ion-icon>
                         </ion-button>
-                        </td>
-                        
-                    </tr>
-                    
-                    <!-- Fila Manual 2 -->
-                    <tr>
-                        <td>Ana Gómez</td>
-                        <td>Barba Completa</td>
-                        <td>2025-11-11</td>
-                        <td>11:30</td>
-                        <td>Barbero Luis</td>
-                        <td>
-                        <ion-badge color="warning">
-                            Cancelada
-                        </ion-badge>
-                        </td>
-                        <td>
-                        <ion-button 
-                            size="small" 
-                            color="warning" 
-                            class="boton-resena"
-                        >
-                            <ion-icon :icon="starOutline" slot="start"></ion-icon>
-                            Reseña
+                        <ion-button color="medium" class="boton-accion-busqueda" @click="limpiarFiltro">
+                            <ion-icon :icon="closeOutline"></ion-icon>
                         </ion-button>
-                        </td>
-                    </tr>
+                    </div>
+                </div>
 
-                    <!-- Fila Manual 3 -->
-                    <tr>
-                        <td>Luis Castro</td>
-                        <td>Corte Clásico</td>
-                        <td>2025-11-12</td>
-                        <td>14:00</td>
-                        <td>Barbero Carlos</td>
-                        <td>
-                        <ion-badge color="medium">
-                            Pendiente
-                        </ion-badge>
-                        </td>
-                        <td>
-                            <ion-button 
-                                size="small" 
-                                color="warning" 
-                                class="boton-resena"
-                                disabled
-                            >
-                            <ion-icon :icon="starOutline" slot="start"></ion-icon>
-                                Reseña
-                            </ion-button>
-                        </td>
-                    </tr>
+                <!-- Tabla de citas -->
+                <div class="table-container" v-if="!loading && citasFiltradas.length > 0">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Servicio</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Barbero</th>
+                                <th>Estado</th>
+                                <th>Reseña</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="cita in citasFiltradas" :key="cita.Id_cita">
+                                <td>{{ cita.Servicio }}</td>
+                                <td>{{ formatearFecha(cita.Fecha) }}</td>
+                                <td>{{ cita.Hora }}</td>
+                                <td>{{ cita.BarberoNombre }}</td>
+                                <td>
+                                    <ion-badge :color="getColorEstado(cita.EstadoC)">
+                                        {{ cita.EstadoC }}
+                                    </ion-badge>
+                                </td>
+                                <td>
+                                    <ion-button 
+                                        v-if="cita.tieneResena"
+                                        size="small" 
+                                        color="success" 
+                                        class="boton-resena"
+                                        disabled
+                                    >
+                                        <ion-icon :icon="checkmarkCircleOutline" slot="start"></ion-icon>
+                                        Reseña enviada
+                                    </ion-button>
+                                    <ion-button 
+                                        v-else-if="cita.EstadoC === 'Completada'"
+                                        size="small" 
+                                        color="warning" 
+                                        class="boton-resena"
+                                        @click="abrirModalResena(cita)"
+                                    >
+                                        <ion-icon :icon="starOutline" slot="start"></ion-icon>
+                                        Dejar Reseña
+                                    </ion-button>
+                                    <ion-button 
+                                        v-else
+                                        size="small" 
+                                        color="medium" 
+                                        class="boton-resena"
+                                        disabled
+                                    >
+                                        <ion-icon :icon="starOutline" slot="start"></ion-icon>
+                                        No disponible
+                                    </ion-button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                    </tbody>
-                </table>
+                <!-- Estado de carga -->
+                <div v-if="loading" class="estado-vacio">
+                    <ion-spinner></ion-spinner>
+                    <p>Cargando tus citas...</p>
+                </div>
+
+                <!-- Sin citas -->
+                <div v-if="!loading && citasFiltradas.length === 0" class="estado-vacio">
+                    <ion-icon :icon="calendarOutline" class="icono-vacio"></ion-icon>
+                    <p>No tienes citas {{ fechaBusqueda ? 'en esta fecha' : 'registradas' }}</p>
                 </div>
             </div>
+
+            <!-- Modal de Reseña -->
+            <ion-modal :is-open="mostrarModal">
+                <ion-header>
+                    <ion-toolbar>
+                        <ion-title>Dejar Reseña</ion-title>
+                        <ion-buttons slot="end">
+                            <ion-button @click="cerrarModal">Cerrar</ion-button>
+                        </ion-buttons>
+                    </ion-toolbar>
+                </ion-header>
+
+                <ion-content class="ion-padding">
+                    <div v-if="citaSeleccionada" class="modal-content">
+                        <!-- Información de la cita -->
+                        <div class="info-cita">
+                            <h3>{{ citaSeleccionada.Servicio }}</h3>
+                            <p><strong>Fecha:</strong> {{ formatearFecha(citaSeleccionada.Fecha) }}</p>
+                            <p><strong>Barbero:</strong> {{ citaSeleccionada.BarberoNombre }}</p>
+                            <p><strong>Precio:</strong> ${{ citaSeleccionada.Precio }}</p>
+                        </div>
+
+                        <!-- Calificación con estrellas -->
+                        <div class="seccion-calificacion">
+                            <ion-label>
+                                <h2>Calificación</h2>
+                                <p>¿Qué te pareció el servicio?</p>
+                            </ion-label>
+                            <div class="estrellas-container">
+                                <ion-icon 
+                                    v-for="n in 5" 
+                                    :key="n"
+                                    :icon="n <= calificacion ? star : starOutline"
+                                    :class="['estrella', { 'estrella-activa': n <= calificacion }]"
+                                    @click="seleccionarCalificacion(n)"
+                                ></ion-icon>
+                            </div>
+                            <p class="texto-calificacion">{{ getTextoCalificacion() }}</p>
+                        </div>
+
+                        <!-- Comentario -->
+                        <ion-item>
+                            <ion-label position="stacked">
+                                <h2>Comentario</h2>
+                                <p>Cuéntanos tu experiencia (opcional)</p>
+                            </ion-label>
+                            <ion-textarea
+                                v-model="comentario"
+                                placeholder="Escribe tu opinión sobre el servicio..."
+                                :rows="4"
+                                :maxlength="230"
+                                class="textarea-comentario"
+                            ></ion-textarea>
+                        </ion-item>
+                        <p class="contador-caracteres">{{ comentario.length }}/230 caracteres</p>
+
+                        <!-- Botón enviar -->
+                        <ion-button 
+                            expand="block" 
+                            color="warning" 
+                            @click="enviarResena"
+                            :disabled="calificacion === 0 || enviando"
+                        >
+                            <ion-icon :icon="sendOutline" slot="start"></ion-icon>
+                            {{ enviando ? 'Enviando...' : 'Enviar Reseña' }}
+                        </ion-button>
+                    </div>
+                </ion-content>
+            </ion-modal>
         </ion-content>
     </ion-page>
 </template>
 
-    <!-- 
-    SCRIPT MODIFICADO
-    -->
 <script setup lang="ts">
-    import {
+import { ref, computed, onMounted } from 'vue';
+import {
     IonPage,
     IonHeader,
     IonToolbar,
@@ -139,206 +189,370 @@
     IonContent,
     IonButton,
     IonIcon,
-    /* IonSearchbar */
-    IonInput, 
+    IonInput,
     IonBadge,
     IonButtons,
-    useIonRouter
-    } from '@ionic/vue';
-    import {
+    IonModal,
+    IonItem,
+    IonLabel,
+    IonTextarea,
+    IonSpinner,
+    useIonRouter,
+    toastController
+} from '@ionic/vue';
+import {
     checkmarkCircleOutline,
-    addOutline,
-    documentTextOutline,
     searchOutline,
     starOutline,
-    createOutline,
-    trashOutline,
-    logOutOutline
-    } from 'ionicons/icons';
+    star,
+    logOutOutline,
+    calendarOutline,
+    sendOutline,
+    closeOutline
+} from 'ionicons/icons';
+import axios from 'axios';
 
-    //logout
-    const router = useIonRouter();
+// Configuración
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const router = useIonRouter();
 
-    const logout = () => {
-        localStorage.removeItem('user');
-        router.navigate('/login', 'back', 'replace');
+// Estado
+const citas = ref<any[]>([]);
+const loading = ref(false);
+const fechaBusqueda = ref('');
+const mostrarModal = ref(false);
+const citaSeleccionada = ref<any>(null);
+const calificacion = ref(0);
+const comentario = ref('');
+const enviando = ref(false);
+
+// Computed
+const citasFiltradas = computed(() => {
+    if (!fechaBusqueda.value) {
+        return citas.value;
+    }
+    return citas.value.filter(cita => {
+        const fechaCita = new Date(cita.Fecha).toISOString().split('T')[0];
+        return fechaCita === fechaBusqueda.value;
+    });
+});
+
+// Funciones
+async function cargarCitas() {
+    loading.value = true;
+    try {
+        const userStr = localStorage.getItem('user');
+        if (!userStr) {
+            router.navigate('/login', 'back', 'replace');
+            return;
+        }
+
+        const user = JSON.parse(userStr);
+        const response = await axios.get(`${API_URL}/citas/get/usuario/${user.Id_usuario}`);
+        
+        // Verificar qué citas tienen reseña
+        const citasConReseñas = await Promise.all(
+            response.data.map(async (cita: any) => {
+                try {
+                    const resenasResponse = await axios.get(`${API_URL}/resenas/get/all`);
+                    const tieneResena = resenasResponse.data.some((r: any) => r.Id_cita === cita.Id_cita);
+                    return { ...cita, tieneResena };
+                } catch {
+                    return { ...cita, tieneResena: false };
+                }
+            })
+        );
+        
+        citas.value = citasConReseñas;
+    } catch (error: any) {
+        console.error('Error al cargar citas:', error);
+        mostrarToast('Error al cargar las citas', 'danger');
+    } finally {
+        loading.value = false;
+    }
+}
+
+function filtrarPorFecha() {
+    if (!fechaBusqueda.value) {
+        mostrarToast('Selecciona una fecha', 'warning');
+    }
+}
+
+function limpiarFiltro() {
+    fechaBusqueda.value = '';
+}
+
+function abrirModalResena(cita: any) {
+    citaSeleccionada.value = cita;
+    calificacion.value = 0;
+    comentario.value = '';
+    mostrarModal.value = true;
+}
+
+function cerrarModal() {
+    mostrarModal.value = false;
+    citaSeleccionada.value = null;
+    calificacion.value = 0;
+    comentario.value = '';
+}
+
+function seleccionarCalificacion(n: number) {
+    calificacion.value = n;
+}
+
+function getTextoCalificacion() {
+    const textos = [
+        '',
+        'Muy malo',
+        'Malo',
+        'Regular',
+        'Bueno',
+        'Excelente'
+    ];
+    return textos[calificacion.value];
+}
+
+async function enviarResena() {
+    if (calificacion.value === 0) {
+        mostrarToast('Selecciona una calificación', 'warning');
+        return;
+    }
+
+    enviando.value = true;
+    try {
+        const resena = {
+            Comentario: comentario.value || 'Sin comentario',
+            Puntuacion: calificacion.value,
+            Id_cita: citaSeleccionada.value.Id_cita
+        };
+
+        await axios.post(`${API_URL}/resenas/add`, resena);
+        
+        mostrarToast('¡Reseña enviada con éxito!', 'success');
+        cerrarModal();
+        cargarCitas(); // Recargar para actualizar el estado
+    } catch (error: any) {
+        console.error('Error al enviar reseña:', error);
+        mostrarToast('Error al enviar la reseña', 'danger');
+    } finally {
+        enviando.value = false;
+    }
+}
+
+function formatearFecha(fecha: string) {
+    if (!fecha) return 'N/A';
+    const date = new Date(fecha);
+    return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+function getColorEstado(estado: string) {
+    const colores: any = {
+        'Completada': 'success',
+        'Pendiente': 'warning',
+        'Cancelada': 'danger'
     };
-    // -----------------------
+    return colores[estado] || 'medium';
+}
 
-    const nuevaCita = () => {
-        console.log('Navegar a nueva cita');
-    };
+async function mostrarToast(message: string, color: string = 'primary') {
+    const toast = await toastController.create({
+        message,
+        duration: 2000,
+        color,
+        position: 'top'
+    });
+    await toast.present();
+}
 
-    const generarReporte = () => {
-        console.log('Generar reporte');
-    };
+const logout = () => {
+    localStorage.removeItem('user');
+    router.navigate('/login', 'back', 'replace');
+};
 
+// Lifecycle
+onMounted(() => {
+    cargarCitas();
+});
 </script>
 
-
 <style scoped>
-    
-    ion-header {
-    --background: #2A2A2A; /* Fondo de header */
-    --color: #E6FFFA; /* Texto de header */
-    }
+ion-header {
+    --background: #2A2A2A;
+    --color: #E6FFFA;
+}
 
-    ion-content {
-    --background: #1E1E1E; /* Fondo principal oscuro */
-    --color: #E6FFFA; /* Texto principal */
-    }
+ion-content {
+    --background: #1E1E1E;
+    --color: #E6FFFA;
+}
 
-    ion-title {
-    font-weight: bold;
-    }
-    
-    /* Estilo para el botón de logout */
-    ion-buttons[slot="end"] ion-button {
-      --color: #E6FFFA; 
-    }
-
-    .icono-encabezado {
-    font-size: 24px;
-    margin-right: 10px;
-    color: #38B2AC; 
-    }
-
-    .contenedor-principal {
+.contenedor-principal {
     padding: 16px;
-    }
+}
 
-
-    .controles-superiores {
+.controles-superiores {
     display: flex;
-    flex-direction: column;
     gap: 16px;
     margin-bottom: 20px;
-    }
+}
 
-
-
-
-
-
-
-    .contenedor-busqueda {
+.contenedor-busqueda {
     display: flex;
     align-items: center;
-    background: #2A2A2A; 
+    background: #2A2A2A;
     border-radius: 8px;
     padding: 0 5px;
-    position: relative;
-    }
+    gap: 8px;
+    flex: 1;
+}
 
-    .barra-busqueda-personalizada {
+.barra-busqueda-personalizada {
     --background: transparent;
-    --color: #E6FFFA; 
-    --placeholder-color: #A0AEC0; 
-    --border-radius: 8px;
-    padding: 0;
-    }
+    --color: #E6FFFA;
+    --placeholder-color: #A0AEC0;
+    flex: 1;
+}
 
-
-
-    .barra-busqueda-personalizada .searchbar-input-container {
-    padding-left: 40px !important;
-    }
-
-    .boton-accion-busqueda {
-    --background: #38B2AC; 
+.boton-accion-busqueda {
     --border-radius: 8px;
     height: 40px;
-    width: 40px;
-    margin-inline-end: 5px;
-    }
+    min-width: 40px;
+}
 
-    /* Estilos de la tabla */
-    .table-container {
+.table-container {
     width: 100%;
     overflow-x: auto;
-    background: #2A2A2A; 
+    background: #2A2A2A;
     border-radius: 8px;
     padding: 10px;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    }
+}
 
-    table {
+table {
     width: 100%;
     border-collapse: collapse;
-    color: #E6FFFA; 
+    color: #E6FFFA;
     min-width: 600px;
-    }
+}
 
-    thead th {
-    background-color: #2A2A2A; 
+thead th {
+    background-color: #2A2A2A;
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 2px solid #38B2AC; 
+    border-bottom: 2px solid #38B2AC;
     font-weight: bold;
     color: #4FD1C5;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    }
+}
 
-    tbody td {
+tbody td {
     padding: 12px 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
-    }
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-    tbody tr:last-child td {
+tbody tr:last-child td {
     border-bottom: none;
-    }
+}
 
-
-    ion-badge {
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-weight: bold;
-    text-transform: capitalize;
-    }
-
-    ion-badge[color="success"] {
-    --background: #38B2AC;
-    --color: #000000;
-    }
-    ion-badge[color="warning"] {
-    --background: #FFBF00;
-    --color: #000000;
-    }
-    ion-badge[color="medium"] {
-    --background: #A0AEC0;
-    --color: #000000;
-    }
-
-
-    /* Botón de reseña */
-    .boton-resena {
-    --background: #FFBF00; /* Amarillo */
-    --color: #000000; /* Texto negro */
+.boton-resena {
     --border-radius: 8px;
-    --box-shadow: none;
     font-weight: bold;
+}
+
+.estado-vacio {
+    text-align: center;
+    padding: 60px 20px;
+    color: #A0AEC0;
+}
+
+.icono-vacio {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+}
+
+/* Modal */
+.modal-content {
+    padding: 16px;
+}
+
+.info-cita {
+    background: #2A2A2A;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.info-cita h3 {
+    margin: 0 0 12px 0;
+    color: #4FD1C5;
+}
+
+.info-cita p {
+    margin: 8px 0;
+}
+
+.seccion-calificacion {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.estrellas-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.estrella {
+    font-size: 48px;
+    color: #A0AEC0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.estrella-activa {
+    color: #FFD700;
+    transform: scale(1.1);
+}
+
+.texto-calificacion {
+    font-size: 18px;
+    font-weight: bold;
+    color: #4FD1C5;
+    margin-top: 8px;
+}
+
+.textarea-comentario {
+    --background: #2A2A2A;
+    --color: #E6FFFA;
+    --padding-start: 12px;
+    --padding-top: 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+}
+
+.contador-caracteres {
+    text-align: right;
+    font-size: 12px;
+    color: #A0AEC0;
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        padding: 5px;
     }
-
-
-
-
-
-    @media (max-width: 768px) {
     
-    }
-    .botones-accion {
-        flex-direction: column;
-        width: 100%;
-    }
-    .botones-accion ion-button {
-        width: 100%;
-    }
-    .contenedor-busqueda {
-        width: 100%;
+    table {
+        font-size: 14px;
     }
     
+    thead th,
+    tbody td {
+        padding: 8px 10px;
+    }
+}
 </style>
