@@ -20,59 +20,61 @@ const routes: Array<RouteRecordRaw> = [
   },
   
   // --- Rutas Protegidas ---
+
+  //roles: 1. Admin, 2. Barbero, 3. Cliente
   {
-    // Ruta para que un cliente (rol 3) deje una reseña
+    // Ruta para la reseña
     path: '/resena/:id',
     name: 'resena',
     component: () => import('@/views/Cliente/Resenas.vue'),
-    meta: { roles: [3] } // Solo Clientes
+    meta: { roles: [3] } 
   },
   {
     path: '/Tabs',
     component: Tabs,
     children: [
-      // --- Ruta Admin (Rol 1) ---
+      // Ruta admin
       {
-        path: 'gestioncitas', // "Inicio" del Admin
+        path: 'gestioncitas', // pantalla inicial del Admin
         component: () => import('@/views/Admin/Citas.vue'),
         meta: { roles: [1] } // Solo Admin
       },{
-      path: 'gestionresenas', // ⬅️ NUEVA RUTA
+      path: 'gestionresenas', 
       component: () => import('@/views/Admin/ResenasAdmin.vue'),
       meta: { roles: [1] }
     },
-      // --- Ruta Barbero (Rol 2) ---
+      
       {
-        path: 'barberocitas', // "Inicio" del Barbero
+        path: 'barberocitas', // pantalla inicial del Barbero
         component: () => import('@/views/Barbero/Citas.vue'),
-        meta: { roles: [2] } // Solo Barbero
+        meta: { roles: [2] } 
       },
-      // --- Rutas Cliente (Rol 3) ---
+      // rutas pal cliente
       {
-        path: 'inicio', // "Inicio" del Cliente
+        path: 'inicio', // pantalla incial del Cliente
         component: () => import('@/views/inicio.vue'),
-        meta: { roles: [3] } // Solo Cliente
+        meta: { roles: [3] } 
       },
       {
         path: 'agendar',
         component: () => import('@/views/Cliente/Agendar.vue'),
-        meta: { roles: [3] } // Solo Cliente
+        meta: { roles: [3] } 
       },
-      // --- Rutas Generales (Todos los roles) ---
+      // pantallas pa todos
       {
         path: 'servicios',
         component: () => import('@/views/Servicios.vue'),
-        meta: { roles: [1, 2, 3] } // Todos pueden ver
+        meta: { roles: [1, 2, 3] }
       },
       {
         path: 'horarios',
         component: () => import('@/views/Horarios.vue'),
-        meta: { roles: [1, 2, 3] } // Todos pueden ver
+        meta: { roles: [1, 2, 3] }
       },
       {
         path: 'cuenta',
         component: () => import('@/views/Cuenta.vue'),
-        meta: { roles: [1, 2, 3] } // Todos pueden ver
+        meta: { roles: [1, 2, 3] } 
       }
     ]
   }
@@ -83,15 +85,14 @@ const router = createRouter({
   routes
 });
 
-// --- GUARDIA DE NAVEGACIÓN MEJORADO CON ROLES ---
+// logica de navegacion por roles
 router.beforeEach((to, from, next) => {
   
-  // 1. Definimos las únicas rutas que NO necesitan login
-  //    Usamos toLowerCase() para evitar errores de mayúsculas/minúsculas
+  //estas rutas no necesitan roles
   const publicPages = ['/login', '/registro'];
   const authRequired = !publicPages.includes(to.path.toLowerCase());
 
-  // 2. Revisamos si el usuario ya inició sesión
+  // Revisando si el usuario ya está logueado
   const loggedIn = localStorage.getItem('user');
   
   let user: User | null = null;
@@ -99,54 +100,46 @@ router.beforeEach((to, from, next) => {
     try {
       user = JSON.parse(loggedIn) as User;
     } catch (e) {
-      // Si hay un error en localStorage, lo borramos y mandamos al login
+      // Si hay un error en localStorage lo borro y lo mando al login
       localStorage.removeItem('user');
       return next('/login');
     }
   }
 
-  // --- Lógica de decisión ---
+  // Logica de autorizacion segun el rol del usuario
 
-  // CASO 1: El usuario quiere ir a una RUTA PROTEGIDA
-  //         PERO NO ha iniciado sesión (no hay 'user' en localStorage).
+  //si quiere ir a una ruta protegida pero no ha iniciado sesion
   if (authRequired && !user) {
     return next('/login');
   }
 
-  // CASO 2: El usuario quiere ir a una RUTA PÚBLICA (Login/Registro)
-  //         PERO YA ha iniciado sesión.
+  //el usuario ha iniciado sesion pero quiere ir a una ruta publica
   if (!authRequired && user) {
-    // Lo redirigimos a su "Inicio" correcto
+    // se redirige al inicio de ese usuario segun su rol
     if (user.Id_rol === 1) return next('/Tabs/gestioncitas');
     if (user.Id_rol === 2) return next('/Tabs/barberocitas');
     if (user.Id_rol === 3) return next('/Tabs/inicio');
-    // Fallback por si acaso
     return next('/Tabs/cuenta');
   }
 
-  // CASO 3: (EL MÁS IMPORTANTE)
-  // El usuario ESTÁ logueado y va a una RUTA PROTEGIDA.
-  // Debemos CHEQUEAR SU ROL.
+  // el suario logueado y quiere ir a una ruta protegida
   if (authRequired && user) {
-    // Obtenemos los roles que SÍ tienen permiso para esta ruta
+    // obtengo los roles permitidos en la ruta
     const requiredRoles = to.meta.roles as number[] | undefined;
 
-    // Si la ruta define roles y el rol del usuario NO está incluido...
+    // Si la ruta define roles y el rol del usuario no está ahi
     if (requiredRoles && !requiredRoles.includes(user.Id_rol)) {
       
-      // No tiene permiso. Lo mandamos a su "Inicio" por defecto.
+      // si no tiene permiso lo mandp  a su inicio segun el rol
       if (user.Id_rol === 1) return next('/Tabs/gestioncitas');
       if (user.Id_rol === 2) return next('/Tabs/barberocitas');
       if (user.Id_rol === 3) return next('/Tabs/inicio');
-      
-      // Fallback si su rol no tiene inicio (ej. rol 0)
+    
       return next('/login'); 
     }
   }
 
-  // CASO 4: Si ninguna regla lo detuvo, dejamos que pase.
-  // (Ej: Usuario logueado yendo a una ruta que SÍ le pertenece)
-  // (Ej: Usuario no logueado yendo a /login)
+  // si no cumple ninguna regla lo dejo pasar
   next();
 });
 

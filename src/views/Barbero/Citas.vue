@@ -10,7 +10,7 @@
     </ion-header>
 
     <ion-content class="ion-padding">
-      <!-- FILTROS -->
+      <!-- Filtros -->
       <div class="filters">
         <div class="status-filters">
           <ion-button 
@@ -64,7 +64,7 @@
         </ion-button>
       </div>
 
-      <!-- LISTA DE CITAS -->
+      <!-- Lista de citas -->
       <div class="appointments">
         <ion-card
           v-for="c in filteredAppointments"
@@ -105,7 +105,7 @@
         </ion-card>
       </div>
 
-      <!-- MODAL -->
+      <!-- modal -->
       <ion-modal :is-open="showModal">
         <ion-header>
           <ion-toolbar>
@@ -140,408 +140,384 @@
 </template>
 
 <script setup lang="ts">
-import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonItem,
-  IonLabel,
-  IonButton,
-  IonBadge,
-  IonModal,
-  IonSelect,
-  IonSelectOption,
-  IonButtons,
-  IonText,
-  IonNote,
-  useIonRouter,
-} from "@ionic/vue";
+  import {
+    IonPage,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonItem,
+    IonLabel,
+    IonButton,
+    IonBadge,
+    IonModal,
+    IonSelect,
+    IonSelectOption,
+    IonButtons,
+    IonText,
+    IonNote,
+    useIonRouter,
+  } from "@ionic/vue";
 
-import { ref, computed, onMounted } from "vue";
-import AppointmentsService from "@/api/Barbero/appointmentsService";
+  import { ref, computed, onMounted } from "vue";
+  import AppointmentsService from "@/api/Barbero/appointmentsService";
 
-const appointmentsService = new AppointmentsService();
+  const appointmentsService = new AppointmentsService();
 
-const appointments = ref<any[]>([]);
-const filterFrom = ref<string | null>(null);
-const filterTo = ref<string | null>(null);
-const filterStatus = ref<string>("pendiente"); // Por defecto: pendientes
-const showModal = ref(false);
-const editable = ref<any | null>(null);
+  const appointments = ref<any[]>([]);
+  const filterFrom = ref<string | null>(null);
+  const filterTo = ref<string | null>(null);
+  const filterStatus = ref<string>("pendiente"); // Por defecto pendientes
+  const showModal = ref(false);
+  const editable = ref<any | null>(null);
 
-const router = useIonRouter();
+  const router = useIonRouter();
 
-/* ============================
-   FORMATEO DE FECHA-HORA
-============================ */
+    //formateo de fecha y hora
 
-function normalizeTimeString(timeRaw: any): string | null {
-  if (!timeRaw) return null;
+  function normalizeTimeString(timeRaw: any): string | null {
+    if (!timeRaw) return null;
 
-  let t = String(timeRaw).trim().replace("Z", "");
+    let t = String(timeRaw).trim().replace("Z", "");
 
-  if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t;
+    if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t;
 
-  if (/^\d{2}:\d{2}$/.test(t)) return t + ":00";
+    if (/^\d{2}:\d{2}$/.test(t)) return t + ":00";
 
-  if (/^\d{2}:\d{2}:\d{2}\.\d+/.test(t)) return t.split(".")[0];
+    if (/^\d{2}:\d{2}:\d{2}\.\d+/.test(t)) return t.split(".")[0];
 
-  const ampm = t.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
-  if (ampm) {
-    let h = parseInt(ampm[1]);
-    const m = ampm[2];
-    const p = ampm[3].toLowerCase();
+    const ampm = t.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+    if (ampm) {
+      let h = parseInt(ampm[1]);
+      const m = ampm[2];
+      const p = ampm[3].toLowerCase();
 
-    if (p === "pm" && h < 12) h += 12;
-    if (p === "am" && h === 12) h = 0;
+      if (p === "pm" && h < 12) h += 12;
+      if (p === "am" && h === 12) h = 0;
 
-    return `${String(h).padStart(2, "0")}:${m}:00`;
+      return `${String(h).padStart(2, "0")}:${m}:00`;
+    }
+
+    return null;
   }
 
-  return null;
-}
+  function tryParseDateCandidate(c: any): string | null {
+    if (!c) return null;
 
-function tryParseDateCandidate(c: any): string | null {
-  if (!c) return null;
+    const s = String(c).trim();
 
-  const s = String(c).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
 
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return s.split("T")[0];
 
-  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return s.split("T")[0];
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const Y = d.getFullYear();
+      const M = String(d.getMonth() + 1).padStart(2, "0");
+      const D = String(d.getDate()).padStart(2, "0");
+      return `${Y}-${M}-${D}`;
+    }
 
-  const d = new Date(s);
-  if (!isNaN(d.getTime())) {
-    const Y = d.getFullYear();
-    const M = String(d.getMonth() + 1).padStart(2, "0");
-    const D = String(d.getDate()).padStart(2, "0");
-    return `${Y}-${M}-${D}`;
+    return null;
   }
 
-  return null;
-}
 
-/* ============================
-   BUILD ISO
-============================ */
+  function buildIsoFromVarious(item: any): string | null {
+    const fechaCandidates = [item.Fecha, item.fecha].filter(Boolean);
+    const horaCandidates = [item.Hora, item.hora].filter(Boolean);
 
-function buildIsoFromVarious(item: any): string | null {
-  const fechaCandidates = [item.Fecha, item.fecha].filter(Boolean);
-  const horaCandidates = [item.Hora, item.hora].filter(Boolean);
+    const fecha = fechaCandidates.map(tryParseDateCandidate).find((f) => f) ?? null;
+    const hora =
+      horaCandidates.map(normalizeTimeString).find((h) => h) ?? null;
 
-  const fecha = fechaCandidates.map(tryParseDateCandidate).find((f) => f) ?? null;
-  const hora =
-    horaCandidates.map(normalizeTimeString).find((h) => h) ?? null;
+    if (fecha && hora) return `${fecha}T${hora}`;
 
-  if (fecha && hora) return `${fecha}T${hora}`;
-
-  return null;
-}
-
-/* ============================
-   MAPEADOR DE RESPUESTA
-============================ */
-
-function mapBackendToView(item: any) {
-  const cliente =
-    item.ClienteNombre ||
-    item.nombreCliente ||
-    item.NombreCliente ||
-    item.cliente ||
-    "Cliente";
-
-  const barbero =
-    item.BarberoNombre ||
-    item.nombreBarbero ||
-    item.NombreBarbero ||
-    null;
-
-  const iso = buildIsoFromVarious(item);
-
-  // Buscar Id_usuario en diferentes variaciones del backend
-  const userId = 
-    item.Id_usuario ?? 
-    item.id_usuario ?? 
-    item.IdUsuario ?? 
-    item.usuarioId ?? 
-    item.ClienteId ??
-    item.Id_cliente ??
-    null;
-
-  // Normalizar el estado para que sea consistente
-  let estadoNormalizado = (item.EstadoC?.toLowerCase() ?? "pendiente").trim();
-  
-  // Si el estado es "completado" o "completada", unificarlo como "completado"
-  if (estadoNormalizado === "completada" || estadoNormalizado === "completado") {
-    estadoNormalizado = "completado";
-  }
-  
-  // Si el estado es "cancelada" o "cancelado", unificarlo como "cancelada"
-  if (estadoNormalizado === "cancelada" || estadoNormalizado === "cancelado") {
-    estadoNormalizado = "cancelada";
+    return null;
   }
 
-  console.log("👤 UserId encontrado para cita", item.Id_cita, ":", userId);
-  console.log("📊 Estado original:", item.EstadoC, "→ Estado normalizado:", estadoNormalizado);
 
-  return {
-    id: item.Id_cita,
-    cliente,
-    barbero,
-    servicio: item.Servicio ?? item.servicio ?? "Servicio",
-    fecha: iso,
-    estado: estadoNormalizado,
-    estadoId: item.Id_estadoC ?? 1,
-    userId: userId,
-    raw: item,
-  };
-}
+  function mapBackendToView(item: any) {
+    const cliente =
+      item.ClienteNombre ||
+      item.nombreCliente ||
+      item.NombreCliente ||
+      item.cliente ||
+      "Cliente";
 
-/* ============================
-   FORMATEO FINAL DE FECHA
-============================ */
+    const barbero =
+      item.BarberoNombre ||
+      item.nombreBarbero ||
+      item.NombreBarbero ||
+      null;
 
-function formatDateTime(iso: string | null) {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "—";
-  return d.toLocaleString();
-}
+    const iso = buildIsoFromVarious(item);
 
-/* ============================
-   COLOR DEL BADGE SEGÚN ESTADO
-============================ */
 
-function getBadgeColor(estado: string): string {
-  const estadoLower = estado.toLowerCase();
-  
-  if (estadoLower === 'completado' || estadoLower === 'completada') {
-    return 'success'; // Verde
+    const userId = 
+      item.Id_usuario ?? 
+      item.id_usuario ?? 
+      item.IdUsuario ?? 
+      item.usuarioId ?? 
+      item.ClienteId ??
+      item.Id_cliente ??
+      null;
+
+    let estadoNormalizado = (item.EstadoC?.toLowerCase() ?? "pendiente").trim();
+    
+    
+    if (estadoNormalizado === "completada" || estadoNormalizado === "completado") {
+      estadoNormalizado = "completado";
+    }
+    
+    if (estadoNormalizado === "cancelada" || estadoNormalizado === "cancelado") {
+      estadoNormalizado = "cancelada";
+    }
+
+    console.log("UserId encontrado para cita", item.Id_cita, ":", userId);
+    console.log("Estado original:", item.EstadoC, "→ Estado normalizado:", estadoNormalizado);
+
+    return {
+      id: item.Id_cita,
+      cliente,
+      barbero,
+      servicio: item.Servicio ?? item.servicio ?? "Servicio",
+      fecha: iso,
+      estado: estadoNormalizado,
+      estadoId: item.Id_estadoC ?? 1,
+      userId: userId,
+      raw: item,
+    };
   }
-  
-  if (estadoLower === 'pendiente') {
-    return 'warning'; // Amarillo
+
+  // Formateo final de fecha
+
+  function formatDateTime(iso: string | null) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleString();
   }
-  
-  if (estadoLower === 'cancelada' || estadoLower === 'cancelado') {
-    return 'danger'; // Rojo
+
+  // Color del badge según estado
+
+  function getBadgeColor(estado: string): string {
+    const estadoLower = estado.toLowerCase();
+    
+    if (estadoLower === 'completado' || estadoLower === 'completada') {
+      return 'success'; // Verde
+    }
+    
+    if (estadoLower === 'pendiente') {
+      return 'warning'; // Amarillo
+    }
+    
+    if (estadoLower === 'cancelada' || estadoLower === 'cancelado') {
+      return 'danger'; // Rojo
+    }
+    
+    if (estadoLower === 'confirmada' || estadoLower === 'confirmado') {
+      return 'primary'; // Azul
+    }
+    
+    return 'medium'; // Gris por defecto
   }
-  
-  if (estadoLower === 'confirmada' || estadoLower === 'confirmado') {
-    return 'primary'; // Azul
+
+  // Carga de citas
+
+  async function loadAppointments() {
+    const raw = localStorage.getItem("user");
+    const user = raw ? JSON.parse(raw) : null;
+
+    const userId = user?.Id_usuario ?? null;
+    if (!userId) return;
+
+    const rows = await appointmentsService.getMyAppointments(userId);
+
+
+    console.log("Datos recibidos del backend:", rows[0]);
+
+    appointments.value = rows.map(mapBackendToView);
   }
-  
-  return 'medium'; // Gris por defecto
-}
 
-/* ============================
-   CARGA DE CITAS
-============================ */
+  // Editar cita
 
-async function loadAppointments() {
-  const raw = localStorage.getItem("user");
-  const user = raw ? JSON.parse(raw) : null;
+  function openEdit(c: any) {
+    editable.value = JSON.parse(JSON.stringify(c));
+    showModal.value = true;
+  }
 
-  const userId = user?.Id_usuario ?? null;
-  if (!userId) return;
+  function closeModal() {
+    showModal.value = false;
+  }
 
-  const rows = await appointmentsService.getMyAppointments(userId);
+  async function saveEdit() {
+    if (!editable.value) return;
 
-  // 🔍 LOG PARA VER LA ESTRUCTURA DE LOS DATOS
-  console.log("🔍 Datos recibidos del backend:", rows[0]);
+    const raw = editable.value.raw;
+    if (!raw) return;
 
-  appointments.value = rows.map(mapBackendToView);
-}
+    let Fecha = raw.Fecha ?? null;
+    let Hora = raw.Hora ?? "00:00:00";
 
-/* ============================
-   EDITAR CITA
-============================ */
 
-function openEdit(c: any) {
-  editable.value = JSON.parse(JSON.stringify(c));
-  showModal.value = true;
-}
+    if (editable.value.fecha) {
+      const iso = editable.value.fecha;
+      if (iso.includes("T")) {
+        Fecha = iso.split("T")[0];
+        const timePart = iso.split("T")[1].split(".")[0];
+        if (timePart) Hora = timePart;
+      }
+    }
 
-function closeModal() {
-  showModal.value = false;
-}
+    // Obtener Id_usuario de forma segura
+    const Id_usuario = editable.value.userId ?? raw.Id_usuario;
 
-async function saveEdit() {
-  if (!editable.value) return;
+    const payload = {
+      Id_cita: raw.Id_cita,
+      Fecha,
+      Dia: raw.Dia,
+      Hora,
+      Id_Barbero: raw.Id_Barbero,
+      Id_servicio: raw.Id_servicio,
+      Id_estadoC: editable.value.estadoId,
+      Id_usuario: Id_usuario,
+    };
 
-  const raw = editable.value.raw;
-  if (!raw) return;
+    console.log("Payload a enviar:", payload);
+    console.log("Datos raw originales:", raw);
+    console.log("Id_usuario:", Id_usuario);
 
-  let Fecha = raw.Fecha ?? null;
-  let Hora = raw.Hora ?? "00:00:00";
+    // Validar que Id_usuario no sea undefined
+    if (!Id_usuario) {
+      alert("Error: No se pudo obtener el ID del usuario");
+      return;
+    }
 
-  // Extraer fecha y hora si están en formato ISO
-  if (editable.value.fecha) {
-    const iso = editable.value.fecha;
-    if (iso.includes("T")) {
-      Fecha = iso.split("T")[0];
-      const timePart = iso.split("T")[1].split(".")[0];
-      if (timePart) Hora = timePart;
+    try {
+      const response = await appointmentsService.updateAppointment(payload);
+      console.log("Respuesta exitosa:", response);
+      closeModal();
+      await loadAppointments();
+    } catch (error: any) {
+      console.error("Error al guardar:", error);
+      console.error("Respuesta del servidor:", error.response?.data);
+      alert(`Error al guardar: ${error.response?.data?.message || error.message}`);
     }
   }
 
-  // Obtener Id_usuario de forma segura
-  const Id_usuario = editable.value.userId ?? raw.Id_usuario;
+  // Filtros
 
-  const payload = {
-    Id_cita: raw.Id_cita,
-    Fecha,
-    Dia: raw.Dia,
-    Hora,
-    Id_Barbero: raw.Id_Barbero,
-    Id_servicio: raw.Id_servicio,
-    Id_estadoC: editable.value.estadoId,
-    Id_usuario: Id_usuario,
-  };
+  const filteredAppointments = computed(() => {
+    return appointments.value.filter((c) => {
+      if (!c.fecha) return false;
+      const d = new Date(c.fecha);
 
-  console.log("📤 Payload a enviar:", payload);
-  console.log("📋 Datos raw originales:", raw);
-  console.log("👤 Id_usuario:", Id_usuario);
+      // Filtro por estado
+      if (filterStatus.value !== "todas") {
+        const estadoLower = c.estado.toLowerCase();
+        if (estadoLower !== filterStatus.value) return false;
+      }
 
-  // Validar que Id_usuario no sea undefined
-  if (!Id_usuario) {
-    alert("Error: No se pudo obtener el ID del usuario");
-    return;
-  }
+      // Filtro por fecha desde
+      if (filterFrom.value) {
+        const f = new Date(filterFrom.value + "T00:00:00");
+        if (d < f) return false;
+      }
 
-  try {
-    const response = await appointmentsService.updateAppointment(payload);
-    console.log("✅ Respuesta exitosa:", response);
-    closeModal();
-    await loadAppointments();
-  } catch (error: any) {
-    console.error("❌ Error al guardar:", error);
-    console.error("❌ Respuesta del servidor:", error.response?.data);
-    alert(`Error al guardar: ${error.response?.data?.message || error.message}`);
-  }
-}
+      // Filtro por fecha hasta
+      if (filterTo.value) {
+        const t = new Date(filterTo.value + "T23:59:59");
+        if (d > t) return false;
+      }
 
-/* ============================
-   FILTROS
-============================ */
-
-const filteredAppointments = computed(() => {
-  return appointments.value.filter((c) => {
-    if (!c.fecha) return false;
-    const d = new Date(c.fecha);
-
-    // Filtro por estado
-    if (filterStatus.value !== "todas") {
-      const estadoLower = c.estado.toLowerCase();
-      if (estadoLower !== filterStatus.value) return false;
-    }
-
-    // Filtro por fecha desde
-    if (filterFrom.value) {
-      const f = new Date(filterFrom.value + "T00:00:00");
-      if (d < f) return false;
-    }
-
-    // Filtro por fecha hasta
-    if (filterTo.value) {
-      const t = new Date(filterTo.value + "T23:59:59");
-      if (d > t) return false;
-    }
-
-    return true;
+      return true;
+    });
   });
-});
 
-function clearFilters() {
-  filterFrom.value = null;
-  filterTo.value = null;
-  filterStatus.value = "pendiente"; // Vuelve a pendientes
-}
+  function clearFilters() {
+    filterFrom.value = null;
+    filterTo.value = null;
+    filterStatus.value = "pendiente"; // Vuelve a pendientes
+  }
 
-/* ============================
-   LOGOUT
-============================ */
+  // Logout
 
-function logout() {
-  localStorage.removeItem("user");
-  router.push("/login");
-}
+  function logout() {
+    localStorage.removeItem("user");
+    router.push("/login");
+  }
 
-/* ============================
-   ON MOUNT
-============================ */
+  // On mount
 
-onMounted(() => loadAppointments());
+  onMounted(() => loadAppointments());
 </script>
 
 <style scoped>
-.filters {
-  display: grid;
-  gap: 16px;
-  margin-bottom: 16px;
-}
+  .filters {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
 
-.status-filters {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
+  .status-filters {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 
-.status-btn {
-  --border-radius: 20px;
-  font-weight: 500;
-  text-transform: none;
-}
+  .status-btn {
+    --border-radius: 20px;
+    font-weight: 500;
+    text-transform: none;
+  }
 
-.date-filters {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
+  .date-filters {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 
-.date-input-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+  .date-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
 
-.date-input-wrapper label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #666;
-  padding-left: 4px;
-}
+  .date-input-wrapper label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    padding-left: 4px;
+  }
 
-.date-input-wrapper input[type="date"] {
-  padding: 10px 12px;
-  border: 1.5px solid #ddd;
-  border-radius: 10px;
-  font-size: 14px;
-  transition: all 0.2s;
-}
+  .date-input-wrapper input[type="date"] {
+    padding: 10px 12px;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
 
-.date-input-wrapper input[type="date"]:focus {
-  outline: none;
-  border-color: #3880ff;
-  box-shadow: 0 0 0 3px rgba(56, 128, 255, 0.1);
-}
+  .date-input-wrapper input[type="date"]:focus {
+    outline: none;
+    border-color: #3880ff;
+    box-shadow: 0 0 0 3px rgba(56, 128, 255, 0.1);
+  }
 
-.clear-btn {
-  margin: 0 auto;
-  max-width: 140px;
-  font-size: 13px;
-  text-transform: none;
-}
+  .clear-btn {
+    margin: 0 auto;
+    max-width: 140px;
+    font-size: 13px;
+    text-transform: none;
+  }
 
-.card-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
 </style>

@@ -1,4 +1,4 @@
-// src/interface/Admin/usuario.ts
+
 export default interface Usuario {
   Id_usuario: number;
   Nombre: string;

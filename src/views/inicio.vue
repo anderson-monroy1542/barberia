@@ -70,7 +70,7 @@
                                         Reseña enviada
                                     </ion-button>
                                     <ion-button 
-                                        v-else-if="cita.EstadoC === 'Completada'"
+                                        v-else-if="cita.EstadoC === 'Completado'"
                                         size="small" 
                                         color="warning" 
                                         class="boton-resena"
@@ -377,7 +377,7 @@ async function cancelarCita() {
 
     cancelando.value = true;
     try {
-        // Actualizar el estado de la cita a "Cancelada" (Id_estadoC = 3)
+        // Actualizar el estado de la cita a "Cancelada"
         const citaActualizada = {
             Id_cita: citaACancelar.value.Id_cita,
             Fecha: citaACancelar.value.Fecha,
@@ -386,7 +386,7 @@ async function cancelarCita() {
             Id_Barbero: citaACancelar.value.Id_Barbero,
             Id_servicio: citaACancelar.value.Id_servicio,
             Id_estadoC: 3, // 3 = Cancelada
-            Id_usuario: citaACancelar.value.Id_cliente // ← CORRECCIÓN AQUÍ
+            Id_usuario: citaACancelar.value.Id_cliente
         };
 
         console.log('Enviando datos:', citaActualizada); // Debug

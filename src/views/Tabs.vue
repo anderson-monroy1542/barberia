@@ -63,10 +63,7 @@
     </ion-page>
 </template>
 
-<!-- 
-  AÑADIMOS UN <script setup> para leer el rol del usuario
-  y poder usar v-if en el template.
--->
+
 <script setup lang="ts">
     import { ref, onMounted } from 'vue';
     import { 
@@ -84,18 +81,18 @@
     gridOutline, 
     timeOutline, 
     personCircleOutline,
-    starOutline  // ⬅️ NUEVO: Importamos el ícono de estrella
+    starOutline  
     } from 'ionicons/icons';
 
-    // Creamos una variable reactiva para guardar el rol
+    
     const userRole = ref<number | null>(null);
 
-    // onMounted se ejecuta cuando el componente se carga
+    
     onMounted(() => {
-    // Leemos el usuario de localStorage
+    
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-        // Convertimos el string a objeto y guardamos el Id_rol
+        
         userRole.value = JSON.parse(storedUser).Id_rol;
     }
     });

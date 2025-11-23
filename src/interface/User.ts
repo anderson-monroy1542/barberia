@@ -1,5 +1,4 @@
 
-
 export default interface User {
     Id_usuario?: number; 
     Nombre: string;

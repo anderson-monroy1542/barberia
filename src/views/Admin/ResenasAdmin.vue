@@ -127,142 +127,142 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonItem,
-  IonLabel,
-  IonButton,
-  IonModal,
-  IonSelect,
-  IonSelectOption,
-  IonButtons,
-  IonText,
-  IonIcon,
-  IonSpinner,
-  useIonRouter,
-  toastController
-} from '@ionic/vue';
-import {
-  logOutOutline,
-  starOutline,
-  trashOutline,
-  calendarOutline,
-  timeOutline,
-  cutOutline,
-  personOutline,
-  chatboxOutline,
-  warningOutline
-} from 'ionicons/icons';
-import axios from 'axios';
+  import { ref, computed, onMounted } from 'vue';
+  import {
+    IonPage,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonItem,
+    IonLabel,
+    IonButton,
+    IonModal,
+    IonSelect,
+    IonSelectOption,
+    IonButtons,
+    IonText,
+    IonIcon,
+    IonSpinner,
+    useIonRouter,
+    toastController
+  } from '@ionic/vue';
+  import {
+    logOutOutline,
+    starOutline,
+    trashOutline,
+    calendarOutline,
+    timeOutline,
+    cutOutline,
+    personOutline,
+    chatboxOutline,
+    warningOutline
+  } from 'ionicons/icons';
+  import axios from 'axios';
 
-// Configuración de la API
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  // Configuración de la API
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-// Estado
-const reviews = ref<any[]>([]);
-const filterRating = ref<number | null>(null);
-const showDeleteModal = ref(false);
-const reviewToDelete = ref<any | null>(null);
-const router = useIonRouter();
-const loading = ref(false);
+  // Estado
+  const reviews = ref<any[]>([]);
+  const filterRating = ref<number | null>(null);
+  const showDeleteModal = ref(false);
+  const reviewToDelete = ref<any | null>(null);
+  const router = useIonRouter();
+  const loading = ref(false);
 
-// Computed
-const filteredReviews = computed(() => {
-  let list = reviews.value.slice();
-  
-  if (filterRating.value !== null) {
-    list = list.filter((r) => r.Puntuacion === filterRating.value);
-  }
-  
-  return list;
-});
-
-// Funciones
-async function loadReviews() {
-  loading.value = true;
-  try {
-    const response = await axios.get(`${API_URL}/resenas/get/all`);
-    reviews.value = response.data;
-    console.log('Reseñas cargadas:', reviews.value);
-  } catch (error: any) {
-    console.error('Error al cargar reseñas:', error);
-    showToast('Error al cargar las reseñas', 'danger');
-  } finally {
-    loading.value = false;
-  }
-}
-
-function confirmDelete(review: any) {
-  reviewToDelete.value = review;
-  showDeleteModal.value = true;
-}
-
-function closeDeleteModal() {
-  showDeleteModal.value = false;
-  reviewToDelete.value = null;
-}
-
-async function deleteReview() {
-  if (!reviewToDelete.value) return;
-  
-  try {
-    await axios.delete(`${API_URL}/resenas/delete/${reviewToDelete.value.Id_resena}`);
+  // Computed
+  const filteredReviews = computed(() => {
+    let list = reviews.value.slice();
     
-    // Remover del array local
-    reviews.value = reviews.value.filter(
-      r => r.Id_resena !== reviewToDelete.value.Id_resena
-    );
+    if (filterRating.value !== null) {
+      list = list.filter((r) => r.Puntuacion === filterRating.value);
+    }
     
-    showToast('Reseña eliminada correctamente', 'success');
-    closeDeleteModal();
-  } catch (error: any) {
-    console.error('Error al eliminar reseña:', error);
-    showToast('Error al eliminar la reseña', 'danger');
+    return list;
+  });
+
+  // Funciones
+  async function loadReviews() {
+    loading.value = true;
+    try {
+      const response = await axios.get(`${API_URL}/resenas/get/all`);
+      reviews.value = response.data;
+      console.log('Reseñas cargadas:', reviews.value);
+    } catch (error: any) {
+      console.error('Error al cargar reseñas:', error);
+      showToast('Error al cargar las reseñas', 'danger');
+    } finally {
+      loading.value = false;
+    }
   }
-}
 
-function clearFilters() {
-  filterRating.value = null;
-}
+  function confirmDelete(review: any) {
+    reviewToDelete.value = review;
+    showDeleteModal.value = true;
+  }
 
-function formatDate(dateString: string) {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  function closeDeleteModal() {
+    showDeleteModal.value = false;
+    reviewToDelete.value = null;
+  }
+
+  async function deleteReview() {
+    if (!reviewToDelete.value) return;
+    
+    try {
+      await axios.delete(`${API_URL}/resenas/delete/${reviewToDelete.value.Id_resena}`);
+      
+      // Remover del array local
+      reviews.value = reviews.value.filter(
+        r => r.Id_resena !== reviewToDelete.value.Id_resena
+      );
+      
+      showToast('Reseña eliminada correctamente', 'success');
+      closeDeleteModal();
+    } catch (error: any) {
+      console.error('Error al eliminar reseña:', error);
+      showToast('Error al eliminar la reseña', 'danger');
+    }
+  }
+
+  function clearFilters() {
+    filterRating.value = null;
+  }
+
+  function formatDate(dateString: string) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  async function showToast(message: string, color: string = 'primary') {
+    const toast = await toastController.create({
+      message,
+      duration: 2000,
+      color,
+      position: 'top'
+    });
+    await toast.present();
+  }
+
+  const logout = () => {
+    localStorage.removeItem('user');
+    router.navigate('/login', 'back', 'replace');
+  };
+
+
+  onMounted(() => {
+    loadReviews();
   });
-}
-
-async function showToast(message: string, color: string = 'primary') {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: 'top'
-  });
-  await toast.present();
-}
-
-const logout = () => {
-  localStorage.removeItem('user');
-  router.navigate('/login', 'back', 'replace');
-};
-
-// Lifecycle
-onMounted(() => {
-  loadReviews();
-});
 </script>
 
 <style scoped>

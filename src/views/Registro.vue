@@ -202,36 +202,36 @@ const onSubmit = async () => {
 
 
 <style scoped>
-@import "../theme/styles.css";
+    @import "../theme/styles.css";
 
-ion-item {
-  --background: transparent;
-  margin-bottom: 16px;
-}
+    ion-item {
+    --background: transparent;
+    margin-bottom: 16px;
+    }
 
-ion-label {
-  color: #E6FFFA !important;
-  font-weight: 500;
-  opacity: 1 !important;
-}
+    ion-label {
+    color: #E6FFFA !important;
+    font-weight: 500;
+    opacity: 1 !important;
+    }
 
-ion-input, ion-select {
-  --color: #E6FFFA !important;
-  --placeholder-color: rgba(230, 255, 250, 0.7) !important;
-}
+    ion-input, ion-select {
+    --color: #E6FFFA !important;
+    --placeholder-color: rgba(230, 255, 250, 0.7) !important;
+    }
 
-ion-select::part(text) {
-  color: #E6FFFA;
-}
+    ion-select::part(text) {
+    color: #E6FFFA;
+    }
 
-ion-select::part(icon) {
-  color: #E6FFFA;
-}
+    ion-select::part(icon) {
+    color: #E6FFFA;
+    }
 
-.card-title {
-  color: #E6FFFA !important;
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
+    .card-title {
+    color: #E6FFFA !important;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    }
 </style>
