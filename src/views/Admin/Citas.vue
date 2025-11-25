@@ -152,7 +152,7 @@
               </ion-select>
             </ion-item>
 
-            <!-- Fecha y Hora (solo para mostrar, calculamos barberos disponibles) -->
+            <!-- Fecha y Hora -->
             <ion-item>
               <ion-label position="stacked">Fecha</ion-label>
               <ion-input 
@@ -171,7 +171,7 @@
               ></ion-input>
             </ion-item>
 
-            <!-- Barberos disponibles (usuarios con rol barbero) -->
+            <!-- Barberos disponibles -->
             <ion-item>
               <ion-label position="stacked">
                 Barbero
@@ -193,15 +193,15 @@
             </ion-item>
 
             <div v-if="!loadingBarberos && availableBarberos.length === 0 && formData.Fecha && formData.Hora" class="warning-message">
-              ⚠️ No hay barberos disponibles en esta fecha y hora
+              No hay barberos disponibles en esta fecha y hora
             </div>
 
-            <!-- Mostrar errores de validación de edición -->
+            <!-- Errores de validación -->
             <div v-if="editErrors" class="warning-message" style="background:#f8d7da; border-color:#f5c2c7; color:#842029; margin-top:10px;">
-              ⚠️ {{ editErrors }}
+              {{ editErrors }}
             </div>
 
-            <!-- Servicio (solo nombre) -->
+            <!-- Servicio -->
             <ion-item>
               <ion-label position="stacked">Servicio</ion-label>
               <ion-select 
@@ -218,14 +218,17 @@
               </ion-select>
             </ion-item>
 
-            <!-- Estado -->
+            <!-- Estado (dinámico desde la BD) -->
             <ion-item>
               <ion-label position="stacked">Estado</ion-label>
               <ion-select v-model="formData.Id_estadoC">
-                <ion-select-option :value="1">Pendiente</ion-select-option>
-                <ion-select-option :value="2">Confirmada</ion-select-option>
-                <ion-select-option :value="3">Completado</ion-select-option>
-                <ion-select-option :value="4">Cancelada</ion-select-option>
+                <ion-select-option 
+                  v-for="estado in estados" 
+                  :key="estado.Id_estadoC ?? estado.id_estadoC"
+                  :value="estado.Id_estadoC ?? estado.id_estadoC"
+                >
+                  {{ estado.EstadoC ?? estado.estadoC ?? estado.nombre }}
+                </ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -285,25 +288,21 @@
     trashOutline 
   } from "ionicons/icons";
 
-  import { ref, computed, onMounted } from "vue";
+  import { ref, computed } from "vue";
   import AdminCitaService from "@/api/Admin/AdminCitaService";
   import type Cita from "@/interface/Admin/cita";
-
-  // services
-  import ServicioService from "@/api/Admin/ServicioService";
-  import UsuarioService from "@/api/Admin/UsuarioService";
-
-  const servicioService = new ServicioService();
-  const usuarioService = new UsuarioService();
+  import axios from "axios";
 
   const citaService = new AdminCitaService();
+  const baseURL = 'http://localhost:3000';
 
   // Estados
   const appointments = ref<any[]>([]);
-  const barberos = ref<any[]>([]);            // usuarios con rol barbero (Id_Barbero = Id_usuario)
-  const availableBarberos = ref<any[]>([]);  // mismos objetos que barberos (Id_Barbero, NombreBarbero)
+  const barberos = ref<any[]>([]);
+  const availableBarberos = ref<any[]>([]);
   const servicios = ref<any[]>([]);
-  const clientes = ref<any[]>([]);           // usuarios con rol cliente
+  const clientes = ref<any[]>([]);
+  const estados = ref<any[]>([]);
   const loadingBarberos = ref(false);
 
   const filterFrom = ref<string | null>(null);
@@ -330,61 +329,7 @@
 
   const router = useIonRouter();
 
-
-
-  function roleToString(u: any): string {
-    if (!u) return "";
-    const candidates = [
-      u.Rol, u.role, u.nombreRol, u.roleName, u.Role, u.id_rol, u.Id_rol, u.IdRol, u.Id_rol
-    ];
-    return String(candidates.find((x:any) => x !== undefined && x !== null) ?? "").toLowerCase();
-  }
-
-  function isBarberoUser(u: any): boolean {
-    if (!u) return false;
-    if (u.IsBarbero === true) return true;
-    const r = roleToString(u);
-    if (!r) {
-      const possible = u.Id_rol ?? u.id_rol ?? u.IdRol ?? u.roleId ?? u.Id_rol;
-      if (possible === 2 || possible === "2") return true;
-    }
-    return r.includes("barb") || r.includes("barbero") || r.includes("barber");
-  }
-
-  function isClienteUser(u: any): boolean {
-    if (!u) return false;
-    if (u.IsCliente === true) return true;
-    const r = roleToString(u);
-    if (!r) {
-      const possible = u.Id_rol ?? u.id_rol ?? u.IdRol ?? u.roleId ?? u.Id_rol;
-      if (possible === 1 || possible === "1") return true;
-    }
-    return r.includes("client") || r.includes("cliente") || r.includes("user");
-  }
-
-  //formateo / util
-
-  function normalizeUserName(u: any): string {
-    return (
-      u.Nombre ??
-      u.nombre ??
-      (u.FirstName && u.LastName ? `${u.FirstName} ${u.LastName}` : null) ??
-      (u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : null) ??
-      u.username ??
-      "Sin nombre"
-    );
-  }
-
-  function normalizeServiceName(s: any): string {
-    return s.NombreServicio ?? s.nombreServicio ?? s.Nombre ?? s.nombre ?? s.title ?? "Servicio";
-  }
-
-  function normalizeUserId(u: any): number | null {
-    return u.Id_usuario ?? u.id ?? u.Id ?? null;
-  }
-
-  //formateo fecha hora
-
+  // Formateo fecha hora
   function normalizeTimeString(timeRaw: any): string | null {
     if (!timeRaw) return null;
 
@@ -453,8 +398,6 @@
     });
   }
 
-
-
   function mapBackendToView(item: any) {
     const cliente =
       item.ClienteNombre ||
@@ -503,8 +446,6 @@
     };
   }
 
-  //color del badge según estado
-
   function getBadgeColor(estado: string): string {
     const estadoLower = estado.toLowerCase();
     
@@ -520,14 +461,31 @@
       return 'danger';
     }
     
-    if (estadoLower === 'confirmada' || estadoLower === 'confirmado') {
-      return 'primary';
-    }
-    
     return 'medium';
   }
 
-  //cargando datos
+  // Cargar estados desde la BD
+  async function loadEstados() {
+    try {
+      const response = await axios.get(`${baseURL}/estadocita`);
+      // Filtrar solo Pendiente (1), Completada (2) y Cancelada (3)
+      estados.value = response.data.filter((estado: any) => {
+        const id = estado.Id_estadoC ?? estado.id_estadoC ?? estado.id;
+        return id === 1 || id === 2 || id === 3;
+      });
+      console.log("Estados cargados:", estados.value);
+    } catch (error) {
+      console.error("Error cargando estados:", error);
+      // Estados por defecto en caso de error
+      estados.value = [
+        { Id_estadoC: 1, EstadoC: 'Pendiente' },
+        { Id_estadoC: 2, EstadoC: 'Completada' },
+        { Id_estadoC: 3, EstadoC: 'Cancelada' }
+      ];
+    }
+  }
+
+  // Cargar citas
   async function loadAppointments() {
     try {
       const rows = await citaService.getAll();
@@ -538,34 +496,38 @@
     }
   }
 
+  // Cargar catálogos desde la BD
   async function loadCatalogs() {
     try {
-      // mantengo datos de ejemplo para carga inicial (no toca edición)
-      barberos.value = [
-        { Id_Barbero: 1, NombreBarbero: 'Carlos López' },
-        { Id_Barbero: 2, NombreBarbero: 'Pedro Martínez' }
-      ];
+      // Cargar barberos
+      const resBarberos = await axios.get(`${baseURL}/usuarios/barberos`);
+      barberos.value = resBarberos.data.map((b: any) => ({
+        Id_Barbero: b.Id_usuario,
+        NombreBarbero: `${b.Nombre} ${b.Apellido || ''}`
+      }));
 
-      servicios.value = [
-        { Id_servicio: 1, NombreServicio: 'Corte Classic', Precio: 15 },
-        { Id_servicio: 2, NombreServicio: 'Corte + Barba', Precio: 25 },
-        { Id_servicio: 3, NombreServicio: 'Afeitado', Precio: 10 }
-      ];
+      // Cargar servicios
+      const resServicios = await axios.get(`${baseURL}/servicios/get/all`);
+      servicios.value = resServicios.data.map((s: any) => ({
+        Id_servicio: s.Id_servicio,
+        NombreServicio: s.Servicio
+      }));
 
-      clientes.value = [
-        { Id_usuario: 1, Nombre: 'Juan Pérez' },
-        { Id_usuario: 2, Nombre: 'María García' },
-        { Id_usuario: 3, Nombre: 'Luis Rodríguez' }
-      ];
+      // Cargar clientes
+      const resClientes = await axios.get(`${baseURL}/usuarios/clientes`);
+      clientes.value = resClientes.data.map((c: any) => ({
+        Id_usuario: c.Id_usuario,
+        Nombre: `${c.Nombre} ${c.Apellido || ''}`
+      }));
+
+      console.log("Catálogos cargados:", { barberos: barberos.value, servicios: servicios.value, clientes: clientes.value });
     } catch (error) {
       console.error("Error cargando catálogos:", error);
     }
   }
 
-  //barberos disponibles
-
+  // Barberos disponibles
   async function loadAvailableBarberos() {
-    // si no hay fecha/hora, devolvemos la lista completa (select editable)
     if (!formData.value.Fecha || !formData.value.Hora) {
       availableBarberos.value = barberos.value;
       return;
@@ -575,20 +537,16 @@
     editErrors.value = null;
 
     try {
-      // citas del día 
       const citasDelDia = await citaService.getByDia(formData.value.Fecha);
 
-      // convierto hora seleccionada a minutos
       const [hSel, mSel] = formData.value.Hora.split(':').map(Number);
       const minutosSel = hSel * 60 + mSel;
-      const slotMinutos = 30; // cada turno de 30 minutos
+      const slotMinutos = 30;
 
       const barberosOcupados = new Set<number>();
 
       citasDelDia.forEach((cita: Cita) => {
-        // ignorar la misma cita que se está editando
         if (formData.value.Id_cita && cita.Id_cita === formData.value.Id_cita) return;
-        // ignorar citas canceladas (Id_estadoC === 4)
         if (cita.Id_estadoC === 4) return;
         if (!cita.Hora || !cita.Id_Barbero) return;
 
@@ -602,30 +560,25 @@
         }
       });
 
-      // filtrar barberos disponibles
       availableBarberos.value = barberos.value.filter(b => !barberosOcupados.has(b.Id_Barbero));
 
-      // si el barbero actual ya no está disponible se limpia
       if (formData.value.Id_Barbero && !availableBarberos.value.some(b => b.Id_Barbero === formData.value.Id_Barbero)) {
         formData.value.Id_Barbero = null;
       }
     } catch (err) {
       console.error("Error en loadAvailableBarberos:", err);
       availableBarberos.value = barberos.value;
-      editErrors.value = "No se pudo comprobar disponibilidad; revisa conexión.";
+      editErrors.value = "No se pudo comprobar disponibilidad.";
     } finally {
       loadingBarberos.value = false;
     }
   }
 
-  //validación de edición
-
+  // Validación
   async function validateEditSlot() {
     editErrors.value = null;
 
-    // campos requeridos para validar
     if (!formData.value.Fecha || !formData.value.Hora || !formData.value.Id_Barbero) {
-      // no hay suficientes datos para validar aún
       return;
     }
 
@@ -636,7 +589,6 @@
       const minutosSel = hSel * 60 + mSel;
       const slotMinutos = 30;
 
-      // busco si existe otra cita del mismo barbero
       const conflicto = citasDelDia.some((c: Cita) => {
         if (formData.value.Id_cita && c.Id_cita === formData.value.Id_cita) return false;
         if (c.Id_estadoC === 4) return false; 
@@ -662,8 +614,7 @@
     }
   }
 
-  //modal editar
-
+  // Modal editar
   async function openEdit(c: any) {
     const raw = c.raw;
 
@@ -671,73 +622,35 @@
     editLoading.value = true;
 
     try {
-      
-      const clientesMap = new Map<number, { Id_usuario: number; Nombre: string }>();
-      const barberosMap = new Map<number, { Id_Barbero: number; NombreBarbero: string }>();
-      const serviciosMap = new Map<number, { Id_servicio: number; NombreServicio: string }>();
-
-      appointments.value.forEach((a: any) => {
-        const r = a.raw ?? {};
-
-        
-        const clientId = a.userId ?? r.Id_usuario ?? r.ClienteId ?? r.Id_cliente ?? null;
-        if (clientId) {
-          const name = a.cliente ?? r.ClienteNombre ?? r.Nombre ?? `Cliente ${clientId}`;
-          clientesMap.set(Number(clientId), { Id_usuario: Number(clientId), Nombre: name });
-        }
-
-        
-        const barberoId = r.Id_Barbero ?? null;
-        if (barberoId) {
-          const nameB = a.barbero ?? r.BarberoNombre ?? r.NombreBarbero ?? `Barbero ${barberoId}`;
-          barberosMap.set(Number(barberoId), { Id_Barbero: Number(barberoId), NombreBarbero: nameB });
-        }
-
-        
-        const servicioId = r.Id_servicio ?? null;
-        if (servicioId) {
-          const nameS = a.servicio ?? r.Servicio ?? r.NombreServicio ?? `Servicio ${servicioId}`;
-          serviciosMap.set(Number(servicioId), { Id_servicio: Number(servicioId), NombreServicio: nameS });
-        }
-      });
-
-      
-      clientes.value = Array.from(clientesMap.values());
-      barberos.value = Array.from(barberosMap.values());
-      servicios.value = Array.from(serviciosMap.values());
-
-      // Mapear fecha/hora
       let fecha = "";
       let hora = "";
       if (c.fecha && typeof c.fecha === "string" && c.fecha.includes("T")) {
         fecha = c.fecha.split("T")[0];
         const timePart = c.fecha.split("T")[1].split(".")[0];
-        if (timePart) hora = timePart.substring(0, 5); // HH:MM
+        if (timePart) hora = timePart.substring(0, 5);
       } else {
         fecha = raw.Fecha ?? raw.fecha ?? "";
         hora = (raw.Hora ?? raw.hora ?? "").toString().substring(0,5);
       }
 
-      
       formData.value = {
         Id_cita: c.id,
         Fecha: fecha,
         Hora: hora,
-        Id_Barbero: raw.Id_Barbero ?? raw.Id_usuarioBarbero ?? raw.Id_usuario ?? null,
+        Id_Barbero: raw.Id_Barbero ?? null,
         Id_servicio: raw.Id_servicio ?? null,
         Id_estadoC: c.estadoId ?? (raw.Id_estadoC ?? 1),
         Id_usuario: c.userId ?? (raw.Id_usuario ?? null),
         Dia: raw.Dia || ""
       };
 
-      // Actualizar disponibles y validar
       await loadAvailableBarberos();
       await validateEditSlot();
 
       showModal.value = true;
     } catch (err: any) {
       console.error("Error en openEdit:", err);
-      editErrors.value = "Error cargando datos para editar. Revisa la consola.";
+      editErrors.value = "Error cargando datos para editar.";
     } finally {
       editLoading.value = false;
     }
@@ -758,8 +671,7 @@
     );
   });
 
-  //guardar 
-
+  // Guardar 
   async function saveAppointment() {
     if (!isFormValid.value) {
       alert('Por favor completa todos los campos requeridos');
@@ -781,7 +693,9 @@
       }
 
       console.log("Actualizando cita:", formData.value);
-      await citaService.update(formData.value);
+      
+      await axios.put(`${baseURL}/citas/update`, formData.value);
+      
       console.log("Cita actualizada exitosamente");
 
       closeModal();
@@ -793,8 +707,7 @@
     }
   }
 
-  //eliminar cita
-
+  // Eliminar cita
   function confirmDelete(c: any) {
     citaToDelete.value = c;
     showDeleteAlert.value = true;
@@ -829,7 +742,7 @@
     }
   }
 
-
+  // Filtros
   const filteredAppointments = computed(() => {
     return appointments.value.filter((c) => {
       if (!c.fecha) return false;
@@ -866,13 +779,13 @@
   }
 
   onIonViewWillEnter(async () => {
+    await loadEstados();
     await loadCatalogs();
     await loadAppointments();
   });
 </script>
 
 <style scoped>
-
   .filters {
     display: grid;
     gap: 16px;
