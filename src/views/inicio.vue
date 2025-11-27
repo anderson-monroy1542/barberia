@@ -259,7 +259,8 @@ import {
     IonTextarea,
     IonSpinner,
     useIonRouter,
-    toastController
+    toastController,
+    onIonViewWillEnter
 } from '@ionic/vue';
 import {
     checkmarkCircleOutline,
@@ -482,7 +483,7 @@ const logout = () => {
 };
 
 // Lifecycle
-onMounted(() => {
+onIonViewWillEnter(() => {
     cargarCitas();
 });
 </script>

@@ -73,7 +73,8 @@
     IonTabButton, 
     IonLabel, 
     IonIcon, 
-    IonRouterOutlet 
+    IonRouterOutlet, 
+    onIonViewWillEnter
     } from '@ionic/vue';
     import { 
     homeOutline, 
@@ -88,7 +89,7 @@
     const userRole = ref<number | null>(null);
 
     
-    onMounted(() => {
+    onIonViewWillEnter(() => {
     
     const storedUser = localStorage.getItem('user');
     if (storedUser) {

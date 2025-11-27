@@ -181,7 +181,7 @@ import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
   IonButton, IonGrid, IonRow, IonCol, IonModal,
   IonItem, IonLabel, IonInput, IonSelect, IonSelectOption,
-  IonButtons, alertController, IonSearchbar, IonList
+  IonButtons, alertController, IonSearchbar, IonList, onIonViewWillEnter
 } from '@ionic/vue';
 
 export default defineComponent({
@@ -216,7 +216,7 @@ export default defineComponent({
         return manana.toISOString().split('T')[0];
     });
 
-    onMounted(() => {
+    onIonViewWillEnter(() => {
         //user del local storage
         const datosGuardados = localStorage.getItem('user');
         

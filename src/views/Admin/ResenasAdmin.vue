@@ -149,7 +149,8 @@
     IonIcon,
     IonSpinner,
     useIonRouter,
-    toastController
+    toastController,
+    onIonViewWillEnter
   } from '@ionic/vue';
   import {
     logOutOutline,
@@ -260,7 +261,7 @@
   };
 
 
-  onMounted(() => {
+  onIonViewWillEnter(() => {
     loadReviews();
   });
 </script>

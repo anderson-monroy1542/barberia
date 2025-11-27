@@ -165,6 +165,8 @@
     IonButtons,
     IonNote,
     useIonRouter,
+    onIonViewDidEnter,
+    onIonViewWillEnter,
   } from "@ionic/vue";
 
   import { ref, computed, onMounted } from "vue";
@@ -473,7 +475,7 @@
     router.push("/login");
   }
 
-  onMounted(() => {
+  onIonViewWillEnter(() => {
     loadEstados();
     loadAppointments();
   });
