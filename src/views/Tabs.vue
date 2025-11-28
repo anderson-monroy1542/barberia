@@ -11,13 +11,17 @@
             <ion-icon :icon="homeOutline" />
             <ion-label>Inicio</ion-label>
             </ion-tab-button>
-
             <!-- Nueva pestaña de Reseñas para el admin -->
             <ion-tab-button v-if="userRole === 1" tab="resenas" href="/Tabs/gestionresenas">
             <ion-icon :icon="starOutline" />
             <ion-label>Reseñas</ion-label>
             </ion-tab-button>
             <!-- aqui se pueden añadir mas cosas para el admin -->
+            <!--nueva pestaña para la gestion de usuarios-->
+            <ion-tab-button v-if="userRole === 1" tab="gestion" href="/Tabs/gestionusuarios">
+            <ion-icon :icon="peopleCircleOutline" /> 
+            <ion-label>Gestión</ion-label>
+            </ion-tab-button>
 
 
             <!-- Rol barbero -->
@@ -82,7 +86,8 @@
     gridOutline, 
     timeOutline, 
     personCircleOutline,
-    starOutline  
+    starOutline,
+    peopleCircleOutline  
     } from 'ionicons/icons';
 
     

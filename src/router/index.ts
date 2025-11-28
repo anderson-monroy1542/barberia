@@ -38,12 +38,18 @@ const routes: Array<RouteRecordRaw> = [
         path: 'gestioncitas', // pantalla inicial del Admin
         component: () => import('@/views/Admin/Citas.vue'),
         meta: { roles: [1] } // Solo Admin
-      },{
+      },
+      {
       path: 'gestionresenas', 
       component: () => import('@/views/Admin/ResenasAdmin.vue'),
       meta: { roles: [1] }
-    },
-      
+      },
+      ///pantalla de gestion de usuarios
+      {
+      path: 'gestionusuarios', 
+      component: () => import('@/views/Admin/GestionUsuarios.vue'),
+      meta: { roles: [1] }
+      },
       {
         path: 'barberocitas', // pantalla inicial del Barbero
         component: () => import('@/views/Barbero/Citas.vue'),
