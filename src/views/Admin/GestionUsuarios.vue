@@ -310,16 +310,105 @@ onIonViewWillEnter(loadUsersAndRoles);
 </script>
 
 <style scoped>
-/* Estilos omitidos por brevedad */
-.user-management-container { padding-bottom: 20px; }
-.filters-bar { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
-@media (min-width: 600px) { .filters-bar { grid-template-columns: 2fr 1fr; } }
-.table-container { overflow-x: auto; background: var(--ion-color-light-contrast); border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-table { width: 100%; border-collapse: collapse; color: var(--ion-color-step-900); min-width: 700px; }
-thead th { background-color: var(--ion-color-primary); color: white; padding: 12px 15px; text-align: left; border-bottom: 2px solid var(--ion-color-primary-shade); }
-tbody td { padding: 10px 15px; border-bottom: 1px solid var(--ion-color-step-150); }
-tbody tr:nth-child(even) { background-color: var(--ion-color-step-50); }
-tbody td:last-child { display: flex; gap: 8px; flex-wrap: nowrap; }
-.empty-state, .loading-state { text-align: center; padding: 40px 20px; color: var(--ion-color-medium); }
-.loading-state ion-spinner { margin-bottom: 10px; }
+/* Estilos generales para el contenedor */
+.user-management-container {
+  padding-bottom: 20px;
+}
+
+/* Estilos de la barra de filtros */
+.filters-bar {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+@media (min-width: 600px) {
+    .filters-bar {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+/* Estilos de la tabla */
+.table-container {
+  /* Mantener overflow-x: auto para el scroll horizontal en móviles */
+  overflow-x: auto; 
+  background: var(--ion-color-light-contrast);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+table {
+  /* CLAVE 1: Forzar un ancho mínimo para que todas las 5 columnas quepan y activen el scroll */
+  width: 100%;
+  min-width: 950px; 
+  border-collapse: collapse;
+  color: var(--ion-color-step-900);
+  table-layout: fixed; 
+}
+
+thead th {
+  background-color: var(--ion-color-primary);
+  color: white; /* Asegura el color blanco en fondos oscuros */
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 2px solid var(--ion-color-primary-shade);
+  white-space: nowrap; /* Evita que el encabezado se corte */
+}
+
+tbody td {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--ion-color-step-150);
+  /* CLAVE: Forzar color claro en el texto de las celdas de datos */
+  color: var(--ion-color-light, #f4f4f4); 
+  white-space: normal;
+}
+/* Columna 1: ID */
+thead th:nth-child(1), tbody td:nth-child(1) { 
+  width: 60px; 
+  text-align: center;
+}
+/* Columna 2: Nombre Completo */
+thead th:nth-child(2), tbody td:nth-child(2) { 
+  width: 180px; 
+  white-space: nowrap; 
+}
+/* Columna 3: Correo */
+thead th:nth-child(3), tbody td:nth-child(3) { 
+  width: 250px; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap;
+}
+/* Columna 4: Rol */
+thead th:nth-child(4), tbody td:nth-child(4) { 
+  width: 120px; 
+  text-align: center;
+}
+/* Columna 5: Acciones */
+thead th:nth-child(5), tbody td:nth-child(5) { 
+  width: 180px; 
+  text-align: center;
+}
+/* CLAVE 3: Estilos de acciones */
+tbody td:last-child {
+  display: flex;
+  gap: 8px;
+  justify-content: center; /* Centrar los botones */
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--ion-color-step-50);
+}
+
+/* Estilos de estado vacío/carga */
+.empty-state, .loading-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ion-color-medium);
+}
+.loading-state ion-spinner {
+    margin-bottom: 10px;
+}
 </style>
