@@ -26,6 +26,7 @@
             <ion-icon :icon="homeOutline" />
             <ion-label>Inicio</ion-label>
             </ion-tab-button>
+            
             <!-- aqui se pueden añadir mas cosas para el barbero -->
 
 

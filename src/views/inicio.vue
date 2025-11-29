@@ -70,7 +70,7 @@
                                         Reseña enviada
                                     </ion-button>
                                     <ion-button 
-                                        v-else-if="cita.EstadoC === 'Completada'"
+                                        v-else-if="cita.EstadoC === 'Completado'"
                                         size="small" 
                                         color="warning" 
                                         class="boton-resena"
