@@ -44,8 +44,12 @@ const routes: Array<RouteRecordRaw> = [
       component: () => import('@/views/Admin/ResenasAdmin.vue'),
       meta: { roles: [1] }
       },
-      
-      
+      ///pantalla de gestion de usuarios
+      {
+      path: 'gestionusuarios', 
+      component: () => import('@/views/Admin/GestionUsuarios.vue'),
+      meta: { roles: [1] }
+      },
       {
         path: 'barberocitas', // pantalla inicial del Barbero
         component: () => import('@/views/Barbero/Citas.vue'),
@@ -94,7 +98,7 @@ router.beforeEach((to, from, next) => {
   const publicPages = ['/login', '/registro'];
   const authRequired = !publicPages.includes(to.path.toLowerCase());
 
-  // Revisando si el usuario ya está logueado
+  //revisando si el usuario ya está logueado
   const loggedIn = localStorage.getItem('user');
   
   let user: User | null = null;
@@ -102,13 +106,13 @@ router.beforeEach((to, from, next) => {
     try {
       user = JSON.parse(loggedIn) as User;
     } catch (e) {
-      // Si hay un error en localStorage lo borro y lo mando al login
+      // si hay un error en localStorage lo borro y lo mando al login
       localStorage.removeItem('user');
       return next('/login');
     }
   }
 
-  // Logica de autorizacion segun el rol del usuario
+  //logica de autorizacion segun el rol del usuario
 
   //si quiere ir a una ruta protegida pero no ha iniciado sesion
   if (authRequired && !user) {
